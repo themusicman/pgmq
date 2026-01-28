@@ -2411,11 +2411,9 @@ RETURNS boolean
 <h2 id="utilities">Utilities<a class="headerlink" href="#utilities" title="Permanent link">&para;</a></h2>
 <h3 id="set_vt-single">set_vt (single)<a class="headerlink" href="#set_vt-single" title="Permanent link">&para;</a></h3>
 <p>Sets the visibility timeout of a message to a specified time duration in the future. Returns the record of the message that was updated.</p>
-<div class="codehilite"><pre><span></span><code>pgmq.set_vt(
-    queue_name text,
-    msg_id bigint,
-    vt integer
-)
+<div class="codehilite"><pre><span></span><code>pgmq.set_vt(queue_name text, msg_id bigint, vt integer)
+pgmq.set_vt(queue_name text, msg_id bigint, vt timestamp with time zone)
+
 RETURNS SETOF pgmq.message_record
 </code></pre></div>
 
@@ -2444,6 +2442,11 @@ RETURNS SETOF pgmq.message_record
 <td style="text-align: left;">integer</td>
 <td style="text-align: left;">Duration from now, in seconds, that the message's VT should be set to</td>
 </tr>
+<tr>
+<td style="text-align: left;">vt</td>
+<td style="text-align: left;">timestamp with time zone</td>
+<td style="text-align: left;">Timestamp when the message becomes visible</td>
+</tr>
 </tbody>
 </table>
 <p>Example:</p>
@@ -2457,11 +2460,9 @@ RETURNS SETOF pgmq.message_record
 <hr />
 <h3 id="set_vt-batch">set_vt (batch)<a class="headerlink" href="#set_vt-batch" title="Permanent link">&para;</a></h3>
 <p>Sets the visibility timeout of multiple messages to a specified time duration in the future. Returns the records of the messages that were updated.</p>
-<div class="codehilite"><pre><span></span><code>pgmq.set_vt(
-    queue_name text,
-    msg_ids bigint[],
-    vt integer
-)
+<div class="codehilite"><pre><span></span><code>pgmq.set_vt(queue_name text, msg_ids bigint[], vt integer)
+pgmq.set_vt(queue_name text, msg_ids bigint[], vt timestamp with time zone)
+
 RETURNS SETOF pgmq.message_record
 </code></pre></div>
 
@@ -2489,6 +2490,11 @@ RETURNS SETOF pgmq.message_record
 <td style="text-align: left;">vt</td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: left;">Duration from now, in seconds, that the messages' VT should be set to</td>
+</tr>
+<tr>
+<td style="text-align: left;">vt</td>
+<td style="text-align: left;">timestamp with time zone</td>
+<td style="text-align: left;">Timestamp when the messages become visible</td>
 </tr>
 </tbody>
 </table>
