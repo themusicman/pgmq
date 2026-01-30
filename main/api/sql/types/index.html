@@ -608,7 +608,12 @@
 <tr>
 <td style="text-align: left;">enqueued_at</td>
 <td style="text-align: left;">timestamp with time zone</td>
-<td style="text-align: left;">time that the message was inserted into the queue</td>
+<td style="text-align: left;">Timestamp when the message was inserted into the queue</td>
+</tr>
+<tr>
+<td style="text-align: left;">last_read_at</td>
+<td style="text-align: left;">timestamp with time zone</td>
+<td style="text-align: left;">Timestamp when the message was last read</td>
 </tr>
 <tr>
 <td style="text-align: left;">vt</td>
@@ -628,9 +633,9 @@
 </tbody>
 </table>
 <p>Example:</p>
-<div class="codehilite"><pre><span></span><code> msg_id | read_ct |          enqueued_at          |              vt               |      message        |           headers
---------+---------+-------------------------------+-------------------------------+---------------------+--------------------------
-      1 |       1 | 2023-10-28 19:06:19.941509-05 | 2023-10-28 19:06:27.419392-05 | {&quot;hello&quot;: &quot;world&quot;}  | {&quot;trace_id&quot;: &quot;abc123&quot;}
+<div class="codehilite"><pre><span></span><code> msg_id | read_ct |          enqueued_at          |              vt              | message | headers 
+--------+---------+-------------------------------+------------------------------+---------+---------
+      1 |       1 | 2026-01-23 19:59:43.333107-06 | 2026-01-23 20:00:13.60826-06 | {&quot;hello&quot;: &quot;world&quot;}      | 
 </code></pre></div>
 
 <h2 id="queue_record">queue_record<a class="headerlink" href="#queue_record" title="Permanent link">&para;</a></h2>

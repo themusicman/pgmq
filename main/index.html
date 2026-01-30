@@ -1085,10 +1085,10 @@ and can be read by another consumer.</p>
 <span class="p">);</span>
 </code></pre></div>
 
-<div class="codehilite"><pre><span></span><code> msg_id | read_ct |          enqueued_at          |              vt               |     message      | headers
---------+---------+-------------------------------+-------------------------------+------------------+---------
-      1 |       1 | 2023-08-16 08:37:54.567283-05 | 2023-08-16 08:38:29.989841-05 | {&quot;foo&quot;: &quot;bar1&quot;}  |
-      2 |       1 | 2023-08-16 08:37:54.572933-05 | 2023-08-16 08:38:29.989841-05 | {&quot;foo&quot;: &quot;bar2&quot;}  |
+<div class="codehilite"><pre><span></span><code> msg_id | read_ct |          enqueued_at          |         last_read_at          |              vt               |     message     | headers 
+--------+---------+-------------------------------+-------------------------------+-------------------------------+-----------------+---------
+      1 |       1 | 2026-01-23 20:27:21.7741-06   | 2026-01-23 20:27:31.605236-06 | 2026-01-23 20:28:01.605236-06 | {&quot;foo&quot;: &quot;bar1&quot;} | 
+      2 |       1 | 2026-01-23 20:27:26.505063-06 | 2026-01-23 20:27:31.605252-06 | 2026-01-23 20:28:01.605252-06 | {&quot;foo&quot;: &quot;bar2&quot;} | 
 </code></pre></div>
 
 <p>If the queue is empty, or if all messages are currently invisible, no rows will be returned.</p>
@@ -1099,8 +1099,8 @@ and can be read by another consumer.</p>
 <span class="p">);</span>
 </code></pre></div>
 
-<div class="codehilite"><pre><span></span><code> msg_id | read_ct | enqueued_at | vt | message | headers
---------+---------+-------------+----+---------+---------
+<div class="codehilite"><pre><span></span><code> msg_id | read_ct | enqueued_at | last_read_at | vt | message | headers 
+--------+---------+-------------+--------------+----+---------+---------
 </code></pre></div>
 
 <h3 id="pop-a-message">Pop a message<a class="headerlink" href="#pop-a-message" title="Permanent link">&para;</a></h3>
@@ -1108,9 +1108,9 @@ and can be read by another consumer.</p>
 <span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;my_queue&#39;</span><span class="p">);</span>
 </code></pre></div>
 
-<div class="codehilite"><pre><span></span><code> msg_id | read_ct |          enqueued_at          |              vt               |     message      | headers
---------+---------+-------------------------------+-------------------------------+------------------+---------
-      1 |       1 | 2023-08-16 08:37:54.567283-05 | 2023-08-16 08:38:29.989841-05 | {&quot;foo&quot;: &quot;bar1&quot;}  |
+<div class="codehilite"><pre><span></span><code> msg_id | read_ct |         enqueued_at         |         last_read_at          |              vt               |     message     | headers 
+--------+---------+-----------------------------+-------------------------------+-------------------------------+-----------------+---------
+      1 |       1 | 2026-01-23 20:27:21.7741-06 | 2026-01-23 20:27:31.605236-06 | 2026-01-23 20:28:01.605236-06 | {&quot;foo&quot;: &quot;bar1&quot;} | 
 </code></pre></div>
 
 <h3 id="archive-a-message">Archive a message<a class="headerlink" href="#archive-a-message" title="Permanent link">&para;</a></h3>
@@ -1164,12 +1164,12 @@ and can be read by another consumer.</p>
 <div class="codehilite"><pre><span></span><code><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">a_my_queue</span><span class="p">;</span>
 </code></pre></div>
 
-<div class="codehilite"><pre><span></span><code> msg_id | read_ct |          enqueued_at          |          archived_at          |              vt               |     message      | headers
---------+---------+-------------------------------+-------------------------------+-------------------------------+------------------+---------
-      2 |       0 | 2024-08-06 16:03:41.531556+00 | 2024-08-06 16:03:52.811063+00 | 2024-08-06 16:03:46.532246+00 | {&quot;foo&quot;: &quot;bar2&quot;}  |
-      3 |       0 | 2024-08-06 16:03:58.586444+00 | 2024-08-06 16:04:02.85799+00  | 2024-08-06 16:03:58.587272+00 | {&quot;foo&quot;: &quot;bar3&quot;}  |
-      4 |       0 | 2024-08-06 16:03:58.586444+00 | 2024-08-06 16:04:02.85799+00  | 2024-08-06 16:03:58.587508+00 | {&quot;foo&quot;: &quot;bar4&quot;}  |
-      5 |       0 | 2024-08-06 16:03:58.586444+00 | 2024-08-06 16:04:02.85799+00  | 2024-08-06 16:03:58.587543+00 | {&quot;foo&quot;: &quot;bar5&quot;}  |
+<div class="codehilite"><pre><span></span><code> msg_id | read_ct |          enqueued_at          |         last_read_at          |          archived_at          |              vt               |     message     | headers 
+--------+---------+-------------------------------+-------------------------------+-------------------------------+-------------------------------+-----------------+---------
+      2 |       1 | 2026-01-23 20:32:35.291971-06 | 2026-01-23 20:32:42.938473-06 | 2026-01-23 20:33:20.297454-06 | 2026-01-23 20:33:12.938473-06 | {&quot;foo&quot;: &quot;bar2&quot;} | 
+      3 |       0 | 2026-01-23 20:33:25.414914-06 |                               | 2026-01-23 20:33:30.318465-06 | 2026-01-23 20:33:25.415035-06 | {&quot;foo&quot;: &quot;bar3&quot;} | 
+      4 |       0 | 2026-01-23 20:33:25.414914-06 |                               | 2026-01-23 20:33:30.318465-06 | 2026-01-23 20:33:25.415035-06 | {&quot;foo&quot;: &quot;bar4&quot;} | 
+      5 |       0 | 2026-01-23 20:33:25.414914-06 |                               | 2026-01-23 20:33:30.318465-06 | 2026-01-23 20:33:25.415035-06 | {&quot;foo&quot;: &quot;bar5&quot;} | 
 </code></pre></div>
 
 <h3 id="delete-a-message">Delete a message<a class="headerlink" href="#delete-a-message" title="Permanent link">&para;</a></h3>
