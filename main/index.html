@@ -330,6 +330,28 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sql-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SQL Only
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#updating" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -439,34 +461,6 @@
     <span class="md-ellipsis">
       
         Drop a queue
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Configuration
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Configuration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#partitioned-queues" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Partitioned Queues
       
     </span>
   </a>
@@ -684,6 +678,87 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="fifo-queues/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FIFO Queues
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="partitioned-queues/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Partitioned Queues
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="topics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Topic Routing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -743,6 +818,28 @@
   
     <nav class="md-nav" aria-label="Installation">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sql-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SQL Only
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#updating" class="md-nav__link">
@@ -866,34 +963,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Configuration
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Configuration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#partitioned-queues" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Partitioned Queues
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#visibility-timeout-vt" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -952,10 +1021,11 @@
 <p><img src="https://github.com/user-attachments/assets/3e6d23c5-83fa-4c4a-98ae-77f305e3cd5c" width="75%" alt="pgmq demo gif"></p>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Lightweight - No background worker or external dependencies, just Postgres functions packaged in an extension</li>
+<li>Lightweight - No background worker or external dependencies, just Postgres SQL objects</li>
 <li>Guaranteed "exactly once" delivery of messages to a consumer within a visibility timeout</li>
 <li>API parity with <a href="https://aws.amazon.com/sqs/">AWS SQS</a> and <a href="https://github.com/smrchy/rsmq">RSMQ</a></li>
-<li>FIFO (First-In-First-Out) queues with message group keys for ordered processing</li>
+<li><a href="docs/fifo-queues.md#overview">FIFO</a> (First-In-First-Out) queues with message group keys for ordered processing</li>
+<li><a href="docs/topics.md#topic-based-routing">Topic-based</a> routing with wildcard patterns for publish-subscribe and content-based routing</li>
 <li>Messages stay in the queue until explicitly removed</li>
 <li>Messages can be archived, instead of deleted, for long-term retention and replayability</li>
 </ul>
@@ -966,6 +1036,8 @@
 <li><a href="#features">Features</a></li>
 <li><a href="#table-of-contents">Table of Contents</a></li>
 <li><a href="#installation">Installation</a><ul>
+<li><a href="#docker">Docker</a></li>
+<li><a href="#sql-only">SQL Only</a></li>
 <li><a href="#updating">Updating</a></li>
 </ul>
 </li>
@@ -980,20 +1052,33 @@
 <li><a href="#drop-a-queue">Drop a queue</a></li>
 </ul>
 </li>
-<li><a href="#configuration">Configuration</a><ul>
-<li><a href="#partitioned-queues">Partitioned Queues</a></li>
-</ul>
-</li>
 <li><a href="#visibility-timeout-vt">Visibility Timeout (vt)</a></li>
 <li><a href="#who-uses-pgmq">Who uses pgmq?</a></li>
 <li><a href="#-contributors">✨ Contributors</a></li>
 </ul>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
-<p>The fastest way to get started is by running the Docker image, where PGMQ comes pre-installed in Postgres.</p>
-<div class="codehilite"><pre><span></span><code>docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>--name<span class="w"> </span>pgmq-postgres<span class="w"> </span>-e<span class="w"> </span><span class="nv">POSTGRES_PASSWORD</span><span class="o">=</span>postgres<span class="w"> </span>-p<span class="w"> </span><span class="m">5432</span>:5432<span class="w"> </span>ghcr.io/pgmq/pg18-pgmq:v1.7.0
+<p>PGMQ can be run on any existing Postgres instance or installed as a Postgres Extension. See <a href="https://github.com/pgmq/pgmq/blob/main/INSTALLATION.md">INSTALLATION.md</a> for the full installation guide including a <a href="https://github.com/pgmq/pgmq/blob/main/INSTALLATION.md#considerations">comparison</a> of the Postgres Extension vs the SQL-only installation.</p>
+<h3 id="docker">Docker<a class="headerlink" href="#docker" title="Permanent link">&para;</a></h3>
+<p>The fastest way to get started is by running the Docker image, where PGMQ comes pre-installed as an extension in Postgres.</p>
+<div class="codehilite"><pre><span></span><code>docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>--name<span class="w"> </span>pgmq-postgres<span class="w"> </span>-e<span class="w"> </span><span class="nv">POSTGRES_PASSWORD</span><span class="o">=</span>postgres<span class="w"> </span>-p<span class="w"> </span><span class="m">5432</span>:5432<span class="w"> </span>ghcr.io/pgmq/pg18-pgmq:v1.10.0
 </code></pre></div>
 
-<p>If you'd like to install PGMQ into an existing Postgres instance, refer to <a href="https://github.com/pgmq/pgmq/blob/main/INSTALLATION.md">INSTALLATION.md</a>.</p>
+<p>Then connect and enable PGMQ:</p>
+<div class="codehilite"><pre><span></span><code>psql<span class="w"> </span>postgres://postgres:postgres@localhost:5432/postgres
+</code></pre></div>
+
+<div class="codehilite"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="n">EXTENSION</span><span class="w"> </span><span class="n">pgmq</span><span class="p">;</span>
+</code></pre></div>
+
+<h3 id="sql-only">SQL Only<a class="headerlink" href="#sql-only" title="Permanent link">&para;</a></h3>
+<p>You can also use <a href="https://www.tigerdata.com/blog/how-to-install-psql-on-mac-ubuntu-debian-windows">psql</a> to install PGMQ's objects directly into the pgmq schema in Postgres. Use this method if you are running someplace that does not natively support the PGMQ Extension. Read these <a href="https://github.com/pgmq/pgmq/blob/main/INSTALLATION.md#considerations">considerations</a> before you decide.</p>
+<div class="codehilite"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/pgmq/pgmq.git
+
+<span class="nb">cd</span><span class="w"> </span>pgmq
+
+psql<span class="w"> </span>-f<span class="w"> </span>pgmq-extension/sql/pgmq.sql<span class="w"> </span>postgres://postgres:postgres@localhost:5432/postgres
+</code></pre></div>
+
 <h3 id="updating">Updating<a class="headerlink" href="#updating" title="Permanent link">&para;</a></h3>
 <p>To update PGMQ versions, follow the instructions in <a href="pgmq-extension/UPDATING.md">UPDATING.md</a>.</p>
 <h2 id="client-libraries">Client Libraries<a class="headerlink" href="#client-libraries" title="Permanent link">&para;</a></h2>
@@ -1003,24 +1088,24 @@
 </ul>
 <p>Community</p>
 <ul>
+<li><a href="https://github.com/brianpursley/Npgmq">.NET</a></li>
 <li><a href="https://github.com/Ofceab-Studio/dart_pgmq">Dart</a></li>
-<li><a href="https://github.com/craigpastro/pgmq-go">Go</a></li>
-<li><a href="https://github.com/v0idpwn/pgmq-elixir">Elixir</a></li>
 <li><a href="https://github.com/v0idpwn/off_broadway_pgmq">Elixir + Broadway</a></li>
+<li><a href="https://github.com/v0idpwn/pgmq-elixir">Elixir</a></li>
+<li><a href="https://github.com/craigpastro/pgmq-go">Go</a></li>
+<li><a href="https://github.com/MichelBoucey/stakhanov">Haskell</a></li>
 <li><a href="https://github.com/roy20021/pgmq-jdbc-client">Java (JDBC)</a></li>
 <li><a href="https://github.com/adamalexandru4/pgmq-spring">Java (Spring Boot)</a></li>
+<li><a href="https://github.com/Muhammad-Magdi/pgmq-js">Javascript (NodeJs)</a></li>
 <li><a href="https://github.com/vdsirotkin/pgmq-kotlin-jvm">Kotlin JVM (JDBC)</a></li>
 <li><a href="https://github.com/smyrgeorge/sqlx4k/tree/main/sqlx4k-postgres-pgmq">Kotlin Multiplatform (sqlx4k)</a></li>
-<li><a href="https://github.com/Muhammad-Magdi/pgmq-js">Javascript (NodeJs)</a></li>
-<li><a href="https://github.com/waitingsong/pgmq-js">TypeScript (NodeJs</a> + <a href="https://midwayjs.org/">Midway.js</a>)</li>
-<li><a href="https://github.com/tmountain/deno-pgmq">TypeScript (Deno)</a></li>
-<li><a href="https://github.com/brianpursley/Npgmq">.NET</a></li>
+<li><a href="https://github.com/thesis-php/pgmq">PHP (non blocking)</a></li>
 <li><a href="https://github.com/jason810496/pgmq-sqlalchemy">Python (with SQLAlchemy)</a></li>
 <li><a href="https://github.com/eichenroth/pgmq-rest">REST-API (Bun + Elysia)</a></li>
 <li><a href="https://github.com/mensfeld/pgmq-ruby">Ruby</a></li>
+<li><a href="https://github.com/tmountain/deno-pgmq">TypeScript (Deno)</a></li>
 <li><a href="https://github.com/dvlkv/prisma-pgmq">TypeScript (NodeJs + Prisma)</a> </li>
-<li><a href="https://github.com/thesis-php/pgmq">PHP (non blocking)</a></li>
-<li><a href="https://github.com/MichelBoucey/stakhanov">Haskell</a></li>
+<li><a href="https://github.com/waitingsong/pgmq-js">TypeScript (NodeJs + Midway.js)</a></li>
 </ul>
 <h2 id="sql-examples">SQL Examples<a class="headerlink" href="#sql-examples" title="Permanent link">&para;</a></h2>
 <div class="codehilite"><pre><span></span><code><span class="c1"># Connect to Postgres</span>
@@ -1202,26 +1287,6 @@ and can be read by another consumer.</p>
 -----------------
  t
 (1 row)
-</code></pre></div>
-
-<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
-<h3 id="partitioned-queues">Partitioned Queues<a class="headerlink" href="#partitioned-queues" title="Permanent link">&para;</a></h3>
-<p>You will need to install <a href="https://github.com/pgpartman/pg_partman/">pg_partman</a> if you want to use <code>pgmq</code> partitioned queues.</p>
-<p><code>pgmq</code> queue tables can be created as a partitioned table by using <code>pgmq.create_partitioned()</code>. <a href="https://github.com/pgpartman/pg_partman/">pg_partman</a>
-handles all maintenance of queue tables. This includes creating new partitions and dropping old partitions.</p>
-<p>Partitions behavior is configured at the time queues are created, via <code>pgmq.create_partitioned()</code>. This function has three parameters:</p>
-<p><code>queue_name: text</code>: The name of the queue. Queues are Postgres tables prepended with <code>q_</code>. For example, <code>q_my_queue</code>. The archive is instead prefixed by <code>a_</code>, for example <code>a_my_queue</code>.</p>
-<p><code>partition_interval: text</code> - The interval at which partitions are created. This can be either any valid Postgres <code>Duration</code> supported by pg_partman, or an integer value. When it is a duration, queues are partitioned by the time at which messages are sent to the table (<code>enqueued_at</code>). A value of <code>'daily'</code> would create a new partition each day. When it is an integer value, queues are partitioned by the <code>msg_id</code>. A value of <code>'100'</code> will create a new partition every 100 messages. The value must agree with <code>retention_interval</code> (time based or numeric). The default value is <code>'10000'</code>. For archive table, when interval is an integer value, then it will be partitioned by <code>msg_id</code>. In case of duration it will be partitioned on <code>archived_at</code> unlike queue table.</p>
-<p><code>retention_interval: text</code> - The interval for retaining partitions. This can be either any valid Postgres <code>Duration</code> supported by pg_partman, or an integer value. When it is a duration, partitions containing data greater than the duration will be dropped. When it is an integer value, any messages that have a <code>msg_id</code> less than <code>max(msg_id) - retention_interval</code> will be dropped. For example, if the max <code>msg_id</code> is 100 and the <code>retention_interval</code> is 60, any partitions with <code>msg_id</code> values less than 40 will be dropped. The value must agree with <code>partition_interval</code> (time based or numeric). The default is <code>'100000'</code>. Note: <code>retention_interval</code> does not apply to messages that have been deleted via <code>pgmq.delete()</code> or archived with <code>pgmq.archive()</code>. <code>pgmq.delete()</code> removes messages forever and <code>pgmq.archive()</code> moves messages to the corresponding archive table forever (for example, <code>a_my_queue</code>).</p>
-<p>In order for automatic partition maintenance to take place, several settings must be added to the <code>postgresql.conf</code> file, which is typically located in the postgres <code>DATADIR</code>.
-<code>pg_partman_bgw.interval</code>
-in <code>postgresql.conf</code>. Below are the default configuration values set in pgmq docker images.</p>
-<p>Add the following to <code>postgresql.conf</code>. Note, changing <code>shared_preload_libraries</code> requires a restart of Postgres.</p>
-<p><code>pg_partman_bgw.interval</code> sets the interval at which <code>pg_partman</code> conducts maintenance. This creates new partitions and dropping of partitions falling out of the <code>retention_interval</code>. By default, <code>pg_partman</code> will keep 4 partitions "ahead" of the currently active partition.</p>
-<div class="codehilite"><pre><span></span><code>shared_preload_libraries = &#39;pg_partman_bgw&#39; # requires restart of Postgres
-pg_partman_bgw.interval = 60
-pg_partman_bgw.role = &#39;postgres&#39;
-pg_partman_bgw.dbname = &#39;postgres&#39;
 </code></pre></div>
 
 <h2 id="visibility-timeout-vt">Visibility Timeout (vt)<a class="headerlink" href="#visibility-timeout-vt" title="Permanent link">&para;</a></h2>
