@@ -704,6 +704,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#pgmqsend_batch_topicrouting_key-msgs-headers-delay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pgmq.send_batch_topic(routing_key, msgs, headers, delay)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -842,6 +853,17 @@
     <span class="md-ellipsis">
       
         5. Multi-Tenant Processing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-batch-message-publishing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Batch Message Publishing
       
     </span>
   </a>
@@ -1100,6 +1122,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#pgmqsend_batch_topicrouting_key-msgs-headers-delay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pgmq.send_batch_topic(routing_key, msgs, headers, delay)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1238,6 +1271,17 @@
     <span class="md-ellipsis">
       
         5. Multi-Tenant Processing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-batch-message-publishing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Batch Message Publishing
       
     </span>
   </a>
@@ -1452,6 +1496,73 @@ all queues whose patterns match that key. This enables flexible publish-subscrib
 <span class="k">SELECT</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">send_topic</span><span class="p">(</span><span class="s1">&#39;orders.created&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;{&quot;order_id&quot;: 123}&#39;</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">);</span><span class="w"> </span><span class="c1">-- 5 second delay</span>
 </code></pre></div>
 
+<p><strong>Notes:</strong></p>
+<ul>
+<li>If no patterns match the routing key, the message is not sent (returns 0)</li>
+<li>If multiple patterns match, the message is sent to all matching queues</li>
+<li>All sends succeed or all fail (transactional)</li>
+</ul>
+<h4 id="pgmqsend_batch_topicrouting_key-msgs-headers-delay"><code>pgmq.send_batch_topic(routing_key, msgs, headers, delay)</code><a class="headerlink" href="#pgmqsend_batch_topicrouting_key-msgs-headers-delay" title="Permanent link">&para;</a></h4>
+<p>Send multiple messages to all queues whose patterns match the routing key.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>routing_key</code> (text): The routing key for pattern matching</li>
+<li><code>msgs</code> (jsonb[]): Array of message payloads to send</li>
+<li><code>headers</code> (jsonb[]): Optional array of headers for each message</li>
+<li><code>delay</code> (integer): Delay in seconds before messages become visible</li>
+<li><code>delay</code> (timestamp with time zone): Timestamp when messages become visible</li>
+</ul>
+<p><strong>Returns:</strong> Table with columns:
+- <code>queue_name</code> (text): Name of the queue that received messages
+- <code>msg_id</code> (bigint): ID of each message that was sent</p>
+<p><strong>Example:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="c1">-- Send 3 messages to all matching queues</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">send_batch_topic</span><span class="p">(</span>
+<span class="w">    </span><span class="s1">&#39;orders.created&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="nb">ARRAY</span><span class="p">[</span>
+<span class="w">        </span><span class="s1">&#39;{&quot;order_id&quot;: 1, &quot;amount&quot;: 100}&#39;</span><span class="p">,</span>
+<span class="w">        </span><span class="s1">&#39;{&quot;order_id&quot;: 2, &quot;amount&quot;: 200}&#39;</span><span class="p">,</span>
+<span class="w">        </span><span class="s1">&#39;{&quot;order_id&quot;: 3, &quot;amount&quot;: 300}&#39;</span>
+<span class="w">    </span><span class="p">]::</span><span class="n">jsonb</span><span class="p">[]</span>
+<span class="p">);</span>
+
+<span class="c1">-- Returns (if 2 queues match the pattern):</span>
+<span class="c1">--  queue_name       | msg_id</span>
+<span class="c1">-- ------------------+--------</span>
+<span class="c1">--  order_processor  | 1</span>
+<span class="c1">--  order_processor  | 2</span>
+<span class="c1">--  order_processor  | 3</span>
+<span class="c1">--  order_analytics  | 1</span>
+<span class="c1">--  order_analytics  | 2</span>
+<span class="c1">--  order_analytics  | 3</span>
+
+<span class="c1">-- With headers</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">send_batch_topic</span><span class="p">(</span>
+<span class="w">    </span><span class="s1">&#39;notifications.email&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="nb">ARRAY</span><span class="p">[</span><span class="s1">&#39;{&quot;to&quot;: &quot;user1@example.com&quot;}&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;{&quot;to&quot;: &quot;user2@example.com&quot;}&#39;</span><span class="p">]::</span><span class="n">jsonb</span><span class="p">[],</span>
+<span class="w">    </span><span class="nb">ARRAY</span><span class="p">[</span><span class="s1">&#39;{&quot;priority&quot;: &quot;high&quot;}&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;{&quot;priority&quot;: &quot;normal&quot;}&#39;</span><span class="p">]::</span><span class="n">jsonb</span><span class="p">[]</span>
+<span class="p">);</span>
+
+<span class="c1">-- Simplified versions</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">send_batch_topic</span><span class="p">(</span><span class="s1">&#39;logs.info&#39;</span><span class="p">,</span><span class="w"> </span><span class="nb">ARRAY</span><span class="p">[</span><span class="s1">&#39;{&quot;msg&quot;: &quot;test&quot;}&#39;</span><span class="p">]::</span><span class="n">jsonb</span><span class="p">[]);</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">send_batch_topic</span><span class="p">(</span><span class="s1">&#39;alerts.critical&#39;</span><span class="p">,</span><span class="w"> </span><span class="nb">ARRAY</span><span class="p">[</span><span class="s1">&#39;{&quot;alert&quot;: &quot;down&quot;}&#39;</span><span class="p">]::</span><span class="n">jsonb</span><span class="p">[],</span><span class="w"> </span><span class="mi">60</span><span class="p">);</span><span class="w"> </span><span class="c1">-- 60 second delay</span>
+
+<span class="c1">-- With timestamp delay (visible in 1 hour)</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">send_batch_topic</span><span class="p">(</span>
+<span class="w">    </span><span class="s1">&#39;scheduled.tasks&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="nb">ARRAY</span><span class="p">[</span><span class="s1">&#39;{&quot;task&quot;: &quot;backup&quot;}&#39;</span><span class="p">]::</span><span class="n">jsonb</span><span class="p">[],</span>
+<span class="w">    </span><span class="k">CURRENT_TIMESTAMP</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">INTERVAL</span><span class="w"> </span><span class="s1">&#39;1 hour&#39;</span>
+<span class="p">);</span>
+</code></pre></div>
+
+<p><strong>Notes:</strong></p>
+<ul>
+<li>Each message in the batch is sent to all matching queues</li>
+<li>If the routing key matches 2 queues and you send 3 messages, you get 6 total messages (3 per queue)</li>
+<li>Headers array length must exactly match messages array length when provided (not NULL). Empty headers arrays will fail validation if msgs is not empty. To send without headers, omit the parameter or pass NULL</li>
+<li>If no patterns match the routing key, returns an empty result set</li>
+<li>All sends succeed or all fail (transactional)</li>
+</ul>
 <h3 id="testing-functions">Testing Functions<a class="headerlink" href="#testing-functions" title="Permanent link">&para;</a></h3>
 <h4 id="pgmqtest_routingrouting_key"><code>pgmq.test_routing(routing_key)</code><a class="headerlink" href="#pgmqtest_routingrouting_key" title="Permanent link">&para;</a></h4>
 <p>Test which queues would receive a message with the given routing key, without actually sending a message.</p>
@@ -1597,6 +1708,49 @@ all queues whose patterns match that key. This enables flexible publish-subscrib
 <span class="c1">-- Route by tenant</span>
 <span class="k">SELECT</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">send_topic</span><span class="p">(</span><span class="s1">&#39;acme.orders.new&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;{&quot;order&quot;: &quot;data&quot;}&#39;</span><span class="p">);</span>
 <span class="c1">-- Routes to: tenant_acme, all_tenants</span>
+</code></pre></div>
+
+<h3 id="6-batch-message-publishing">6. Batch Message Publishing<a class="headerlink" href="#6-batch-message-publishing" title="Permanent link">&para;</a></h3>
+<p>Send multiple messages at once using <code>send_batch_topic</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1">-- Create notification queues</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="k">create</span><span class="p">(</span><span class="s1">&#39;email_queue&#39;</span><span class="p">);</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="k">create</span><span class="p">(</span><span class="s1">&#39;sms_queue&#39;</span><span class="p">);</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="k">create</span><span class="p">(</span><span class="s1">&#39;all_notifications&#39;</span><span class="p">);</span>
+
+<span class="c1">-- Bind patterns</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">bind_topic</span><span class="p">(</span><span class="s1">&#39;notify.email.#&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;email_queue&#39;</span><span class="p">);</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">bind_topic</span><span class="p">(</span><span class="s1">&#39;notify.sms.#&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;sms_queue&#39;</span><span class="p">);</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">bind_topic</span><span class="p">(</span><span class="s1">&#39;notify.#&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;all_notifications&#39;</span><span class="p">);</span>
+
+<span class="c1">-- Send batch of email notifications</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">send_batch_topic</span><span class="p">(</span>
+<span class="w">    </span><span class="s1">&#39;notify.email.welcome&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="nb">ARRAY</span><span class="p">[</span>
+<span class="w">        </span><span class="s1">&#39;{&quot;to&quot;: &quot;user1@example.com&quot;, &quot;name&quot;: &quot;Alice&quot;}&#39;</span><span class="p">,</span>
+<span class="w">        </span><span class="s1">&#39;{&quot;to&quot;: &quot;user2@example.com&quot;, &quot;name&quot;: &quot;Bob&quot;}&#39;</span><span class="p">,</span>
+<span class="w">        </span><span class="s1">&#39;{&quot;to&quot;: &quot;user3@example.com&quot;, &quot;name&quot;: &quot;Carol&quot;}&#39;</span>
+<span class="w">    </span><span class="p">]::</span><span class="n">jsonb</span><span class="p">[]</span>
+<span class="p">);</span>
+<span class="c1">-- Routes 3 messages each to: email_queue and all_notifications (6 total messages)</span>
+
+<span class="c1">-- Send batch with headers for priority handling</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">send_batch_topic</span><span class="p">(</span>
+<span class="w">    </span><span class="s1">&#39;notify.sms.alert&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="nb">ARRAY</span><span class="p">[</span><span class="s1">&#39;{&quot;phone&quot;: &quot;+1234567890&quot;, &quot;msg&quot;: &quot;Alert!&quot;}&#39;</span><span class="p">]::</span><span class="n">jsonb</span><span class="p">[],</span>
+<span class="w">    </span><span class="nb">ARRAY</span><span class="p">[</span><span class="s1">&#39;{&quot;priority&quot;: &quot;urgent&quot;}&#39;</span><span class="p">]::</span><span class="n">jsonb</span><span class="p">[]</span>
+<span class="p">);</span>
+<span class="c1">-- Routes to: sms_queue and all_notifications with priority header</span>
+
+<span class="c1">-- Send batch with delay (e.g., scheduled notifications)</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">send_batch_topic</span><span class="p">(</span>
+<span class="w">    </span><span class="s1">&#39;notify.email.reminder&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="nb">ARRAY</span><span class="p">[</span>
+<span class="w">        </span><span class="s1">&#39;{&quot;to&quot;: &quot;user@example.com&quot;, &quot;subject&quot;: &quot;Reminder&quot;}&#39;</span><span class="p">,</span>
+<span class="w">        </span><span class="s1">&#39;{&quot;to&quot;: &quot;admin@example.com&quot;, &quot;subject&quot;: &quot;Daily report&quot;}&#39;</span>
+<span class="w">    </span><span class="p">]::</span><span class="n">jsonb</span><span class="p">[],</span>
+<span class="w">    </span><span class="mi">3600</span><span class="w">  </span><span class="c1">-- Delay 1 hour</span>
+<span class="p">);</span>
+<span class="c1">-- Messages become visible in 1 hour</span>
 </code></pre></div>
 
 <h2 id="performance-considerations">Performance Considerations<a class="headerlink" href="#performance-considerations" title="Permanent link">&para;</a></h2>

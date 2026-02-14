@@ -490,6 +490,78 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#topic-based-routing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Topic-Based Routing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Topic-Based Routing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#send_topic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        send_topic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#send_batch_topic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        send_batch_topic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bind_topic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        bind_topic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unbind_topic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        unbind_topic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test_routing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        test_routing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#reading-messages" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1036,6 +1108,78 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#topic-based-routing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Topic-Based Routing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Topic-Based Routing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#send_topic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        send_topic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#send_batch_topic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        send_batch_topic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bind_topic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        bind_topic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unbind_topic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        unbind_topic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test_routing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        test_routing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#reading-messages" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1565,6 +1709,7 @@ RETURNS SETOF bigint
 </tbody>
 </table>
 <p><strong>Returns:</strong> The IDs of the messages that were added to the queue.</p>
+<p><strong>Validation:</strong> When <code>headers</code> is provided (not NULL), its array length must exactly match the length of <code>msgs</code>. This includes empty arrays - an empty headers array (e.g., <code>ARRAY[]::jsonb[]</code>) will fail validation if <code>msgs</code> is not empty. To send messages without headers, either omit the <code>headers</code> parameter or pass NULL.</p>
 <p>Examples:</p>
 <div class="codehilite"><pre><span></span><code><span class="c1">-- Send multiple messages</span>
 <span class="k">select</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">from</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">send_batch</span><span class="p">(</span><span class="s1">&#39;my_queue&#39;</span><span class="p">,</span>
@@ -1613,6 +1758,293 @@ RETURNS SETOF bigint
 <span class="c1">------------</span>
 <span class="w">          </span><span class="mi">7</span>
 <span class="w">          </span><span class="mi">8</span>
+</code></pre></div>
+
+<hr />
+<h2 id="topic-based-routing">Topic-Based Routing<a class="headerlink" href="#topic-based-routing" title="Permanent link">&para;</a></h2>
+<p>PGMQ supports topic-based message routing with wildcard patterns. Messages can be routed to multiple queues based on routing keys and pattern matching. See the <a href="../../../topics/">Topics guide</a> for detailed information.</p>
+<h3 id="send_topic">send_topic<a class="headerlink" href="#send_topic" title="Permanent link">&para;</a></h3>
+<p>Send a message to all queues whose patterns match the routing key.</p>
+<p><strong>Signatures:</strong></p>
+<div class="codehilite"><pre><span></span><code>pgmq.send_topic(routing_key text, msg jsonb)
+pgmq.send_topic(routing_key text, msg jsonb, delay integer)
+pgmq.send_topic(routing_key text, msg jsonb, headers jsonb, delay integer)
+
+RETURNS integer
+</code></pre></div>
+
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Parameter</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">routing_key</td>
+<td style="text-align: left;">text</td>
+<td style="text-align: left;">The routing key for pattern matching</td>
+</tr>
+<tr>
+<td style="text-align: left;">msg</td>
+<td style="text-align: left;">jsonb</td>
+<td style="text-align: left;">The message payload</td>
+</tr>
+<tr>
+<td style="text-align: left;">headers</td>
+<td style="text-align: left;">jsonb</td>
+<td style="text-align: left;">Optional message headers/metadata</td>
+</tr>
+<tr>
+<td style="text-align: left;">delay</td>
+<td style="text-align: left;">integer</td>
+<td style="text-align: left;">Time in seconds before the message becomes visible</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> The number of queues the message was sent to.</p>
+<p>Examples:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1">-- Create queues and bind patterns</span>
+<span class="k">select</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="k">create</span><span class="p">(</span><span class="s1">&#39;logs_all&#39;</span><span class="p">);</span>
+<span class="k">select</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="k">create</span><span class="p">(</span><span class="s1">&#39;logs_errors&#39;</span><span class="p">);</span>
+<span class="k">select</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">bind_topic</span><span class="p">(</span><span class="s1">&#39;logs.#&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;logs_all&#39;</span><span class="p">);</span>
+<span class="k">select</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">bind_topic</span><span class="p">(</span><span class="s1">&#39;logs.*.error&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;logs_errors&#39;</span><span class="p">);</span>
+
+<span class="c1">-- Send to matching queues</span>
+<span class="k">select</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">send_topic</span><span class="p">(</span><span class="s1">&#39;logs.api.error&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;{&quot;message&quot;: &quot;API failed&quot;}&#39;</span><span class="p">);</span>
+<span class="w"> </span><span class="n">send_topic</span>
+<span class="c1">------------</span>
+<span class="w">          </span><span class="mi">2</span>
+<span class="c1">-- Message sent to 2 queues: logs_all and logs_errors</span>
+
+<span class="c1">-- With headers</span>
+<span class="k">select</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">send_topic</span><span class="p">(</span><span class="s1">&#39;logs.db.error&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;{&quot;message&quot;: &quot;DB error&quot;}&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;{&quot;severity&quot;: &quot;high&quot;}&#39;</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+
+<span class="c1">-- With delay</span>
+<span class="k">select</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">send_topic</span><span class="p">(</span><span class="s1">&#39;logs.api.info&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;{&quot;message&quot;: &quot;Request received&quot;}&#39;</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">);</span>
+</code></pre></div>
+
+<hr />
+<h3 id="send_batch_topic">send_batch_topic<a class="headerlink" href="#send_batch_topic" title="Permanent link">&para;</a></h3>
+<p>Send multiple messages to all queues whose patterns match the routing key.</p>
+<p><strong>Signatures:</strong></p>
+<div class="codehilite"><pre><span></span><code>pgmq.send_batch_topic(routing_key text, msgs jsonb[])
+pgmq.send_batch_topic(routing_key text, msgs jsonb[], headers jsonb[])
+pgmq.send_batch_topic(routing_key text, msgs jsonb[], delay integer)
+pgmq.send_batch_topic(routing_key text, msgs jsonb[], delay timestamp with time zone)
+pgmq.send_batch_topic(routing_key text, msgs jsonb[], headers jsonb[], delay integer)
+pgmq.send_batch_topic(routing_key text, msgs jsonb[], headers jsonb[], delay timestamp with time zone)
+
+RETURNS TABLE(queue_name text, msg_id bigint)
+</code></pre></div>
+
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Parameter</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">routing_key</td>
+<td style="text-align: left;">text</td>
+<td style="text-align: left;">The routing key for pattern matching</td>
+</tr>
+<tr>
+<td style="text-align: left;">msgs</td>
+<td style="text-align: left;">jsonb[]</td>
+<td style="text-align: left;">Array of message payloads to send</td>
+</tr>
+<tr>
+<td style="text-align: left;">headers</td>
+<td style="text-align: left;">jsonb[]</td>
+<td style="text-align: left;">Optional array of headers for each message</td>
+</tr>
+<tr>
+<td style="text-align: left;">delay</td>
+<td style="text-align: left;">integer</td>
+<td style="text-align: left;">Time in seconds before the messages become visible</td>
+</tr>
+<tr>
+<td style="text-align: left;">delay</td>
+<td style="text-align: left;">timestamp with time zone</td>
+<td style="text-align: left;">Timestamp when the messages become visible</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> A table with the queue name and message ID for each message sent.</p>
+<p><strong>Validation:</strong> When <code>headers</code> is provided (not NULL), its array length must exactly match the length of <code>msgs</code>. Empty headers arrays will fail validation if <code>msgs</code> is not empty. To send messages without headers, either omit the <code>headers</code> parameter or pass NULL.</p>
+<p>Examples:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1">-- Send batch of messages to matching queues</span>
+<span class="k">select</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">from</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">send_batch_topic</span><span class="p">(</span>
+<span class="w">    </span><span class="s1">&#39;orders.created&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="nb">array</span><span class="p">[</span>
+<span class="w">        </span><span class="s1">&#39;{&quot;order_id&quot;: 1, &quot;amount&quot;: 100}&#39;</span><span class="p">,</span>
+<span class="w">        </span><span class="s1">&#39;{&quot;order_id&quot;: 2, &quot;amount&quot;: 200}&#39;</span>
+<span class="w">    </span><span class="p">]::</span><span class="n">jsonb</span><span class="p">[]</span>
+<span class="p">);</span>
+<span class="w">      </span><span class="n">queue_name</span><span class="w">       </span><span class="o">|</span><span class="w"> </span><span class="n">msg_id</span>
+<span class="c1">-----------------------+--------</span>
+<span class="w"> </span><span class="n">order_processor</span><span class="w">       </span><span class="o">|</span><span class="w">      </span><span class="mi">1</span>
+<span class="w"> </span><span class="n">order_processor</span><span class="w">       </span><span class="o">|</span><span class="w">      </span><span class="mi">2</span>
+<span class="w"> </span><span class="n">order_analytics</span><span class="w">       </span><span class="o">|</span><span class="w">      </span><span class="mi">1</span>
+<span class="w"> </span><span class="n">order_analytics</span><span class="w">       </span><span class="o">|</span><span class="w">      </span><span class="mi">2</span>
+<span class="c1">-- Each message sent to all matching queues</span>
+
+<span class="c1">-- With headers</span>
+<span class="k">select</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">from</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">send_batch_topic</span><span class="p">(</span>
+<span class="w">    </span><span class="s1">&#39;notifications.email&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="nb">array</span><span class="p">[</span><span class="s1">&#39;{&quot;to&quot;: &quot;user1@example.com&quot;}&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;{&quot;to&quot;: &quot;user2@example.com&quot;}&#39;</span><span class="p">]::</span><span class="n">jsonb</span><span class="p">[],</span>
+<span class="w">    </span><span class="nb">array</span><span class="p">[</span><span class="s1">&#39;{&quot;priority&quot;: &quot;high&quot;}&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;{&quot;priority&quot;: &quot;normal&quot;}&#39;</span><span class="p">]::</span><span class="n">jsonb</span><span class="p">[]</span>
+<span class="p">);</span>
+
+<span class="c1">-- With delay (messages visible in 60 seconds)</span>
+<span class="k">select</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">from</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">send_batch_topic</span><span class="p">(</span>
+<span class="w">    </span><span class="s1">&#39;alerts.critical&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="nb">array</span><span class="p">[</span><span class="s1">&#39;{&quot;alert&quot;: &quot;system down&quot;}&#39;</span><span class="p">]::</span><span class="n">jsonb</span><span class="p">[],</span>
+<span class="w">    </span><span class="mi">60</span>
+<span class="p">);</span>
+
+<span class="c1">-- With timestamp delay (visible in 1 hour)</span>
+<span class="k">select</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">from</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">send_batch_topic</span><span class="p">(</span>
+<span class="w">    </span><span class="s1">&#39;scheduled.tasks&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="nb">array</span><span class="p">[</span><span class="s1">&#39;{&quot;task&quot;: &quot;backup&quot;}&#39;</span><span class="p">]::</span><span class="n">jsonb</span><span class="p">[],</span>
+<span class="w">    </span><span class="k">CURRENT_TIMESTAMP</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">INTERVAL</span><span class="w"> </span><span class="s1">&#39;1 hour&#39;</span>
+<span class="p">);</span>
+</code></pre></div>
+
+<hr />
+<h3 id="bind_topic">bind_topic<a class="headerlink" href="#bind_topic" title="Permanent link">&para;</a></h3>
+<p>Bind a pattern to a queue. Messages with routing keys matching the pattern will be routed to this queue.</p>
+<p><strong>Signature:</strong></p>
+<div class="codehilite"><pre><span></span><code>pgmq.bind_topic(pattern text, queue_name text)
+
+RETURNS void
+</code></pre></div>
+
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Parameter</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">pattern</td>
+<td style="text-align: left;">text</td>
+<td style="text-align: left;">The wildcard pattern to match routing keys</td>
+</tr>
+<tr>
+<td style="text-align: left;">queue_name</td>
+<td style="text-align: left;">text</td>
+<td style="text-align: left;">Name of the queue to receive matching messages</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Wildcard patterns:</strong>
+- <code>*</code> matches exactly one segment (e.g., <code>logs.*</code> matches <code>logs.error</code> but not <code>logs.api.error</code>)
+- <code>#</code> matches zero or more segments (e.g., <code>logs.#</code> matches <code>logs.error</code> and <code>logs.api.error</code>)</p>
+<p>Examples:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1">-- Create queue</span>
+<span class="k">select</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="k">create</span><span class="p">(</span><span class="s1">&#39;error_logs&#39;</span><span class="p">);</span>
+
+<span class="c1">-- Bind patterns</span>
+<span class="k">select</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">bind_topic</span><span class="p">(</span><span class="s1">&#39;logs.*.error&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;error_logs&#39;</span><span class="p">);</span><span class="w">  </span><span class="c1">-- Errors from any service</span>
+<span class="k">select</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">bind_topic</span><span class="p">(</span><span class="s1">&#39;alerts.#&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;error_logs&#39;</span><span class="p">);</span><span class="w">      </span><span class="c1">-- All alerts</span>
+
+<span class="c1">-- Binding is idempotent</span>
+<span class="k">select</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">bind_topic</span><span class="p">(</span><span class="s1">&#39;logs.*.error&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;error_logs&#39;</span><span class="p">);</span><span class="w">  </span><span class="c1">-- No error, no duplicate</span>
+</code></pre></div>
+
+<hr />
+<h3 id="unbind_topic">unbind_topic<a class="headerlink" href="#unbind_topic" title="Permanent link">&para;</a></h3>
+<p>Remove a pattern binding from a queue.</p>
+<p><strong>Signature:</strong></p>
+<div class="codehilite"><pre><span></span><code>pgmq.unbind_topic(pattern text, queue_name text)
+
+RETURNS boolean
+</code></pre></div>
+
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Parameter</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">pattern</td>
+<td style="text-align: left;">text</td>
+<td style="text-align: left;">The pattern to unbind</td>
+</tr>
+<tr>
+<td style="text-align: left;">queue_name</td>
+<td style="text-align: left;">text</td>
+<td style="text-align: left;">Name of the queue</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> <code>true</code> if a binding was removed, <code>false</code> if no binding existed.</p>
+<p>Examples:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1">-- Remove binding</span>
+<span class="k">select</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">unbind_topic</span><span class="p">(</span><span class="s1">&#39;logs.*.error&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;error_logs&#39;</span><span class="p">);</span>
+<span class="w"> </span><span class="n">unbind_topic</span>
+<span class="c1">--------------</span>
+<span class="w"> </span><span class="n">t</span>
+
+<span class="c1">-- No binding to remove</span>
+<span class="k">select</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">unbind_topic</span><span class="p">(</span><span class="s1">&#39;nonexistent.pattern&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;error_logs&#39;</span><span class="p">);</span>
+<span class="w"> </span><span class="n">unbind_topic</span>
+<span class="c1">--------------</span>
+<span class="w"> </span><span class="n">f</span>
+</code></pre></div>
+
+<hr />
+<h3 id="test_routing">test_routing<a class="headerlink" href="#test_routing" title="Permanent link">&para;</a></h3>
+<p>Test which queues would receive a message with the given routing key, without actually sending a message.</p>
+<p><strong>Signature:</strong></p>
+<div class="codehilite"><pre><span></span><code>pgmq.test_routing(routing_key text)
+
+RETURNS TABLE(pattern text, queue_name text, compiled_regex text)
+</code></pre></div>
+
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Parameter</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">routing_key</td>
+<td style="text-align: left;">text</td>
+<td style="text-align: left;">The routing key to test</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> Table showing all patterns that match the routing key and which queues they route to.</p>
+<p>Examples:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1">-- Test routing</span>
+<span class="k">select</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">from</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">test_routing</span><span class="p">(</span><span class="s1">&#39;logs.api.error&#39;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">pattern</span><span class="w">     </span><span class="o">|</span><span class="w">  </span><span class="n">queue_name</span><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="n">compiled_regex</span>
+<span class="c1">----------------+--------------+---------------------------</span>
+<span class="w"> </span><span class="n">logs</span><span class="p">.</span><span class="o">#</span><span class="w">         </span><span class="o">|</span><span class="w"> </span><span class="n">logs_all</span><span class="w">     </span><span class="o">|</span><span class="w"> </span><span class="o">^</span><span class="n">logs</span><span class="err">\</span><span class="p">..</span><span class="o">*</span><span class="err">$</span>
+<span class="w"> </span><span class="n">logs</span><span class="p">.</span><span class="o">*</span><span class="p">.</span><span class="n">error</span><span class="w">   </span><span class="o">|</span><span class="w"> </span><span class="n">error_logs</span><span class="w">   </span><span class="o">|</span><span class="w"> </span><span class="o">^</span><span class="n">logs</span><span class="err">\</span><span class="p">.[</span><span class="o">^</span><span class="p">.]</span><span class="o">+</span><span class="err">\</span><span class="p">.</span><span class="n">error$</span>
 </code></pre></div>
 
 <hr />
