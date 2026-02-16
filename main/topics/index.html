@@ -676,6 +676,28 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#pgmqlist_topic_bindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pgmq.list_topic_bindings()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pgmqlist_topic_bindingsqueue_name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pgmq.list_topic_bindings(queue_name)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1094,6 +1116,28 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#pgmqlist_topic_bindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pgmq.list_topic_bindings()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pgmqlist_topic_bindingsqueue_name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pgmq.list_topic_bindings(queue_name)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1476,6 +1520,57 @@ all queues whose patterns match that key. This enables flexible publish-subscrib
 <div class="codehilite"><pre><span></span><code><span class="k">SELECT</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">unbind_topic</span><span class="p">(</span><span class="s1">&#39;orders.#&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;order_events&#39;</span><span class="p">);</span>
 </code></pre></div>
 
+<h4 id="pgmqlist_topic_bindings"><code>pgmq.list_topic_bindings()</code><a class="headerlink" href="#pgmqlist_topic_bindings" title="Permanent link">&para;</a></h4>
+<p>Returns all topic bindings across all queues.</p>
+<p><strong>Returns:</strong> Table with columns:</p>
+<ul>
+<li><code>pattern</code> (text): The wildcard pattern</li>
+<li><code>queue_name</code> (text): Name of the queue receiving matching messages</li>
+<li><code>bound_at</code> (timestamp with time zone): When the binding was created</li>
+<li><code>compiled_regex</code> (text): The internal regex used for matching</li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">list_topic_bindings</span><span class="p">();</span>
+<span class="c1">-- Returns:</span>
+<span class="c1">--   pattern      | queue_name  | bound_at                   | compiled_regex</span>
+<span class="c1">--   -------------+-------------+----------------------------+-------------------</span>
+<span class="c1">--   orders.#     | all_orders  | 2024-01-15 10:30:00.000000 | ^orders\..*$</span>
+<span class="c1">--   logs.*.error | error_logs  | 2024-01-15 10:29:00.000000 | ^logs\.[^.]+\.error$</span>
+</code></pre></div>
+
+<p><strong>Notes:</strong></p>
+<ul>
+<li>Results are ordered by <code>bound_at</code> DESC (most recent first), then by <code>pattern</code> and <code>queue_name</code></li>
+<li>Use this to audit or debug your topic routing configuration</li>
+</ul>
+<h4 id="pgmqlist_topic_bindingsqueue_name"><code>pgmq.list_topic_bindings(queue_name)</code><a class="headerlink" href="#pgmqlist_topic_bindingsqueue_name" title="Permanent link">&para;</a></h4>
+<p>Returns all topic bindings for a specific queue.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>queue_name</code> (text): Name of the queue</li>
+</ul>
+<p><strong>Returns:</strong> Table with columns:</p>
+<ul>
+<li><code>pattern</code> (text): The wildcard pattern</li>
+<li><code>queue_name</code> (text): Name of the queue (always matches the parameter)</li>
+<li><code>bound_at</code> (timestamp with time zone): When the binding was created</li>
+<li><code>compiled_regex</code> (text): The internal regex used for matching</li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">list_topic_bindings</span><span class="p">(</span><span class="s1">&#39;order_events&#39;</span><span class="p">);</span>
+<span class="c1">-- Returns:</span>
+<span class="c1">--   pattern         | queue_name    | bound_at                   | compiled_regex</span>
+<span class="c1">--   ----------------+---------------+----------------------------+---------------------</span>
+<span class="c1">--   orders.#        | order_events  | 2024-01-15 10:30:00.000000 | ^orders\..*$</span>
+<span class="c1">--   orders.*.failed | order_events  | 2024-01-15 10:28:00.000000 | ^orders\.[^.]+\.failed$</span>
+</code></pre></div>
+
+<p><strong>Notes:</strong></p>
+<ul>
+<li>Results are ordered by <code>bound_at</code> DESC (most recent first), then by <code>pattern</code></li>
+<li>Returns empty result if queue has no bindings</li>
+<li><code>queue_name</code> column is included for consistency with the no-argument version</li>
+</ul>
 <h3 id="sending-functions">Sending Functions<a class="headerlink" href="#sending-functions" title="Permanent link">&para;</a></h3>
 <h4 id="pgmqsend_topicrouting_key-msg-headers-delay"><code>pgmq.send_topic(routing_key, msg, headers, delay)</code><a class="headerlink" href="#pgmqsend_topicrouting_key-msg-headers-delay" title="Permanent link">&para;</a></h4>
 <p>Send a message to all queues whose patterns match the routing key.</p>
@@ -1756,9 +1851,9 @@ all queues whose patterns match that key. This enables flexible publish-subscrib
 <h2 id="performance-considerations">Performance Considerations<a class="headerlink" href="#performance-considerations" title="Permanent link">&para;</a></h2>
 <h3 id="pattern-compilation">Pattern Compilation<a class="headerlink" href="#pattern-compilation" title="Permanent link">&para;</a></h3>
 <p>Patterns are compiled to regular expressions when bound, not at send time:</p>
-<div class="codehilite"><pre><span></span><code><span class="c1">-- Pattern &#39;logs.*.error&#39; is stored with precompiled regex: ^logs\.[^.]+\.error$</span>
-<span class="k">SELECT</span><span class="w"> </span><span class="n">pattern</span><span class="p">,</span><span class="w"> </span><span class="n">compiled_regex</span>
-<span class="k">FROM</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">topic_bindings</span><span class="p">;</span>
+<div class="codehilite"><pre><span></span><code><span class="c1">-- View all patterns with their compiled regex</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">pattern</span><span class="p">,</span><span class="w"> </span><span class="n">queue_name</span><span class="p">,</span><span class="w"> </span><span class="n">compiled_regex</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">list_topic_bindings</span><span class="p">();</span>
 </code></pre></div>
 
 <p>This means:</p>

@@ -911,6 +911,28 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#update_notify_insert" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        update_notify_insert
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#list_notify_insert_throttles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        list_notify_insert_throttles
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#create_fifo_index" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1522,6 +1544,28 @@
     <span class="md-ellipsis">
       
         disable_notify_insert
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update_notify_insert" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        update_notify_insert
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#list_notify_insert_throttles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        list_notify_insert_throttles
       
     </span>
   </a>
@@ -3266,22 +3310,15 @@ RETURNS void
 </code></pre></div>
 
 <p><strong>Changing throttling after enabling notifications:</strong></p>
-<p>You can modify the throttling interval for an existing queue by directly updating the <code>pgmq.notify_insert_throttle</code> table:</p>
+<p>Use <code>update_notify_insert()</code> to modify the throttling interval for an existing queue:</p>
 <div class="codehilite"><pre><span></span><code><span class="c1">-- Change throttling to 1000ms (1 second)</span>
-<span class="k">UPDATE</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">notify_insert_throttle</span>
-<span class="k">SET</span><span class="w"> </span><span class="n">throttle_interval_ms</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1000</span>
-<span class="k">WHERE</span><span class="w"> </span><span class="n">queue_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;my_queue&#39;</span><span class="p">;</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">update_notify_insert</span><span class="p">(</span><span class="s1">&#39;my_queue&#39;</span><span class="p">,</span><span class="w"> </span><span class="mi">1000</span><span class="p">);</span>
 
 <span class="c1">-- Disable throttling (set to 0ms)</span>
-<span class="k">UPDATE</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">notify_insert_throttle</span>
-<span class="k">SET</span><span class="w"> </span><span class="n">throttle_interval_ms</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
-<span class="k">WHERE</span><span class="w"> </span><span class="n">queue_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;my_queue&#39;</span><span class="p">;</span>
-
-<span class="c1">-- View current throttle settings for all queues</span>
-<span class="k">SELECT</span><span class="w"> </span><span class="n">queue_name</span><span class="p">,</span><span class="w"> </span><span class="n">throttle_interval_ms</span><span class="p">,</span><span class="w"> </span><span class="n">last_notified_at</span>
-<span class="k">FROM</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">notify_insert_throttle</span><span class="p">;</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">update_notify_insert</span><span class="p">(</span><span class="s1">&#39;my_queue&#39;</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 </code></pre></div>
 
+<p>See <a href="#update_notify_insert"><code>update_notify_insert</code></a> for more details.</p>
 <hr />
 <h3 id="disable_notify_insert">disable_notify_insert<a class="headerlink" href="#disable_notify_insert" title="Permanent link">&para;</a></h3>
 <p>Disable PostgreSQL NOTIFY triggers for a queue that were enabled with <code>enable_notify_insert()</code>.</p>
@@ -3310,6 +3347,101 @@ RETURNS void
 <div class="codehilite"><pre><span></span><code><span class="k">select</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">disable_notify_insert</span><span class="p">(</span><span class="s1">&#39;my_queue&#39;</span><span class="p">);</span>
 <span class="w"> </span><span class="n">disable_notify_insert</span>
 <span class="c1">-----------------------</span>
+</code></pre></div>
+
+<hr />
+<h3 id="update_notify_insert">update_notify_insert<a class="headerlink" href="#update_notify_insert" title="Permanent link">&para;</a></h3>
+<p>Update the throttle interval for a queue that has notifications enabled. This allows you to change the throttling rate without disabling and re-enabling notifications.</p>
+<div class="codehilite"><pre><span></span><code>pgmq.update_notify_insert(queue_name text, throttle_interval_ms integer)
+RETURNS void
+</code></pre></div>
+
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Parameter</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">queue_name</td>
+<td style="text-align: left;">text</td>
+<td style="text-align: left;">The name of the queue</td>
+</tr>
+<tr>
+<td style="text-align: left;">throttle_interval_ms</td>
+<td style="text-align: left;">integer</td>
+<td style="text-align: left;">Minimum milliseconds between notifications (0 = no throttling)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Notes:</strong></p>
+<ul>
+<li>The queue must have notifications enabled via <code>enable_notify_insert()</code> first</li>
+<li>Setting to 0 disables throttling (sends notification on every insert)</li>
+<li>Updating the throttle resets <code>last_notified_at</code> to ensure immediate notification on next insert</li>
+<li><code>throttle_interval_ms</code> must be non-negative</li>
+</ul>
+<p>Example:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1">-- Change throttling to 1 second</span>
+<span class="k">select</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">update_notify_insert</span><span class="p">(</span><span class="s1">&#39;my_queue&#39;</span><span class="p">,</span><span class="w"> </span><span class="mi">1000</span><span class="p">);</span>
+<span class="w"> </span><span class="n">update_notify_insert</span>
+<span class="c1">----------------------</span>
+</code></pre></div>
+
+<hr />
+<h3 id="list_notify_insert_throttles">list_notify_insert_throttles<a class="headerlink" href="#list_notify_insert_throttles" title="Permanent link">&para;</a></h3>
+<p>Returns all notification throttle configurations for queues that have notifications enabled.</p>
+<div class="codehilite"><pre><span></span><code>pgmq.list_notify_insert_throttles()
+RETURNS TABLE (
+    queue_name text,
+    throttle_interval_ms integer,
+    last_notified_at timestamp with time zone
+)
+</code></pre></div>
+
+<p><strong>Returns:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Column</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">queue_name</td>
+<td style="text-align: left;">text</td>
+<td style="text-align: left;">The name of the queue</td>
+</tr>
+<tr>
+<td style="text-align: left;">throttle_interval_ms</td>
+<td style="text-align: left;">integer</td>
+<td style="text-align: left;">Minimum milliseconds between notifications</td>
+</tr>
+<tr>
+<td style="text-align: left;">last_notified_at</td>
+<td style="text-align: left;">timestamp with time zone</td>
+<td style="text-align: left;">Timestamp of the last notification sent</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Notes:</strong></p>
+<ul>
+<li>Only returns queues that have notifications enabled</li>
+<li>Results are ordered by queue_name</li>
+<li>Empty result if no queues have notifications enabled</li>
+</ul>
+<p>Example:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">select</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">from</span><span class="w"> </span><span class="n">pgmq</span><span class="p">.</span><span class="n">list_notify_insert_throttles</span><span class="p">();</span>
+<span class="w">   </span><span class="n">queue_name</span><span class="w">   </span><span class="o">|</span><span class="w"> </span><span class="n">throttle_interval_ms</span><span class="w"> </span><span class="o">|</span><span class="w">      </span><span class="n">last_notified_at</span>
+<span class="c1">----------------+----------------------+----------------------------</span>
+<span class="w"> </span><span class="n">my_queue</span><span class="w">       </span><span class="o">|</span><span class="w">                 </span><span class="mi">1000</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="mi">2024</span><span class="o">-</span><span class="mi">01</span><span class="o">-</span><span class="mi">15</span><span class="w"> </span><span class="mi">10</span><span class="p">:</span><span class="mi">30</span><span class="p">:</span><span class="mi">45</span><span class="p">.</span><span class="mi">123456</span>
+<span class="w"> </span><span class="n">another_queue</span><span class="w">  </span><span class="o">|</span><span class="w">                    </span><span class="mi">0</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="mi">1970</span><span class="o">-</span><span class="mi">01</span><span class="o">-</span><span class="mi">01</span><span class="w"> </span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">.</span><span class="mi">000000</span>
 </code></pre></div>
 
 <hr />
