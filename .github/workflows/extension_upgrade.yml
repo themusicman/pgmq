@@ -30,7 +30,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pg: [14, 15, 16, 17]
+        pg:
+          # - 14
+          # - 15
+          # - 16
+          # - 17
+          - 18
     env:
       DATABASE_URL: postgresql://postgres@localhost:5432/postgres
     steps:
@@ -57,7 +62,8 @@ jobs:
         run: git checkout tags/v1.3.2
 
       - name: Install pgmq v1.3.2
-        working-directory: ./pgmq-extension
+      # extension was installed on root during v1.3.2
+        working-directory: .
         run: |
           make clean || true
           make
