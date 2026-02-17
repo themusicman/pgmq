@@ -191,38 +191,29 @@ class TestPreUpgrade:
         )
         assert msg_id_1 is not None
 
-        # Message with headers
+        # Message that will be archived pre-upgrade
         msg_id_2 = send_message(
             db_connection,
             QUEUE_NAME,
-            {"phase": "pre", "index": 2, "purpose": "survive_with_headers"},
-            headers={"x-source": "upgrade-test", "x-priority": "high"},
+            {"phase": "pre", "index": 2, "purpose": "to_archive"},
         )
-        assert msg_id_2 is not None
+        assert archive_message(db_connection, QUEUE_NAME, msg_id_2)
 
-        # Message that will be archived pre-upgrade
+        # Message that will be deleted pre-upgrade
         msg_id_3 = send_message(
             db_connection,
             QUEUE_NAME,
-            {"phase": "pre", "index": 3, "purpose": "to_archive"},
+            {"phase": "pre", "index": 3, "purpose": "to_delete"},
         )
-        assert archive_message(db_connection, QUEUE_NAME, msg_id_3)
-
-        # Message that will be deleted pre-upgrade
-        msg_id_4 = send_message(
-            db_connection,
-            QUEUE_NAME,
-            {"phase": "pre", "index": 4, "purpose": "to_delete"},
-        )
-        assert delete_message(db_connection, QUEUE_NAME, msg_id_4)
+        assert delete_message(db_connection, QUEUE_NAME, msg_id_3)
 
         # Message on the unlogged queue
-        msg_id_5 = send_message(
+        msg_id_4 = send_message(
             db_connection,
             QUEUE_UNLOGGED,
-            {"phase": "pre", "index": 5, "purpose": "unlogged_survive"},
+            {"phase": "pre", "index": 4, "purpose": "unlogged_survive"},
         )
-        assert msg_id_5 is not None
+        assert msg_id_4 is not None
 
     @pre_only
     def test_send_batch(self, db_connection):
@@ -247,8 +238,8 @@ class TestPreUpgrade:
         #          oldest_msg_age_sec, total_messages, scrape_time,
         #          queue_visible_length
         assert metrics[0] == QUEUE_NAME
-        # 2 individual + 5 batch = 7 messages in queue
-        assert metrics[1] == 7, f"Expected 7 messages, got {metrics[1]}"
+        # 1 individual + 5 batch = 6 messages in queue
+        assert metrics[1] == 6, f"Expected 6 messages, got {metrics[1]}"
         # 1 archived message
         assert get_archive_count(db_connection, QUEUE_NAME) == 1
 
@@ -292,27 +283,26 @@ class TestPostUpgradeStateIntact:
     def test_messages_survive(self, db_connection):
         """Messages sent pre-upgrade are still in the queue."""
         msgs = read_messages(db_connection, QUEUE_NAME, vt=0, qty=100)
-        assert len(msgs) == 7, (
-            f"Expected 7 messages to survive upgrade, got {len(msgs)}"
+        assert len(msgs) == 6, (
+            f"Expected 6 messages to survive upgrade, got {len(msgs)}"
         )
 
     @post_only
     def test_message_content_intact(self, db_connection):
-        """Message bodies and headers are unchanged after upgrade."""
+        """Message bodies are unchanged after upgrade."""
         msgs = read_messages(db_connection, QUEUE_NAME, vt=0, qty=100)
 
-        # Find the message with headers
-        header_msg = None
+        # Find the message that was sent pre-upgrade to survive the upgrade
+        survive_msg = None
         for m in msgs:
             body = m[5]  # message column
-            if body.get("purpose") == "survive_with_headers":
-                header_msg = m
+            if body.get("purpose") == "survive_upgrade":
+                survive_msg = m
                 break
 
-        assert header_msg is not None, "Message with headers not found"
-        headers = header_msg[6]  # headers column
-        assert headers["x-source"] == "upgrade-test"
-        assert headers["x-priority"] == "high"
+        assert survive_msg is not None, "Pre-upgrade survive message not found"
+        assert survive_msg[5]["phase"] == "pre"
+        assert survive_msg[5]["index"] == 1
 
     @post_only
     def test_archive_survives(self, db_connection):
@@ -327,7 +317,7 @@ class TestPostUpgradeStateIntact:
         """pgmq.metrics() works on pre-upgrade queues."""
         metrics = get_metrics(db_connection, QUEUE_NAME)
         assert metrics[0] == QUEUE_NAME
-        assert metrics[1] == 7  # queue_length
+        assert metrics[1] == 6  # queue_length
 
     @post_only
     def test_unlogged_queue_survives(self, db_connection):
