@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - main
+      - upgrade-test
     paths:
       - "pgmq-extension/**"
       - ".github/workflows/extension_upgrade.yml"
