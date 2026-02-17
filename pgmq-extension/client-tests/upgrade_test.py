@@ -85,7 +85,10 @@ def send_message(conn, queue_name, msg, headers=None):
 def read_messages(conn, queue_name, vt=0, qty=10):
     with conn.cursor() as cur:
         cur.execute(
-            "SELECT * FROM pgmq.read(queue_name => %s::text, vt => %s::integer, qty => %s::integer)",
+            """
+            SELECT msg_id, read_ct, enqueued_at, last_read_at, vt, message, headers
+            FROM pgmq.read(queue_name => %s::text, vt => %s::integer, qty => %s::integer)
+            """,
             (queue_name, vt, qty),
         )
         return cur.fetchall()
@@ -93,7 +96,13 @@ def read_messages(conn, queue_name, vt=0, qty=10):
 
 def pop_message(conn, queue_name):
     with conn.cursor() as cur:
-        cur.execute("SELECT * FROM pgmq.pop(queue_name => %s::text)", (queue_name,))
+        cur.execute(
+            """
+            SELECT msg_id, read_ct, enqueued_at, last_read_at, vt, message, headers
+            FROM pgmq.pop(queue_name => %s::text)
+            """,
+            (queue_name,),
+        )
         return cur.fetchone()
 
 
@@ -118,7 +127,10 @@ def delete_message(conn, queue_name, msg_id):
 def set_vt(conn, queue_name, msg_id, vt):
     with conn.cursor() as cur:
         cur.execute(
-            "SELECT * FROM pgmq.set_vt(queue_name => %s::text, msg_id => %s::bigint, vt => %s::integer)",
+            """
+            SELECT msg_id, read_ct, enqueued_at, last_read_at, vt, message, headers
+            FROM pgmq.set_vt(queue_name => %s::text, msg_id => %s::bigint, vt => %s::integer)
+            """,
             (queue_name, msg_id, vt),
         )
         return cur.fetchone()
@@ -126,7 +138,14 @@ def set_vt(conn, queue_name, msg_id, vt):
 
 def get_metrics(conn, queue_name):
     with conn.cursor() as cur:
-        cur.execute("SELECT * FROM pgmq.metrics(queue_name => %s::text)", (queue_name,))
+        cur.execute(
+            """
+            SELECT queue_name, queue_length, newest_msg_age_sec, oldest_msg_age_sec,
+                   total_messages, scrape_time, queue_visible_length
+            FROM pgmq.metrics(queue_name => %s::text)
+            """,
+            (queue_name,),
+        )
         return cur.fetchone()
 
 
@@ -236,9 +255,6 @@ class TestPreUpgrade:
     def test_verify_pre_state(self, db_connection):
         """Verify everything looks correct before upgrade."""
         metrics = get_metrics(db_connection, QUEUE_NAME)
-        # metrics: queue_name, queue_length, newest_msg_age_sec,
-        #          oldest_msg_age_sec, total_messages, scrape_time,
-        #          queue_visible_length
         assert metrics[0] == QUEUE_NAME
         # 1 individual + 5 batch = 6 messages in queue
         assert metrics[1] == 6, f"Expected 6 messages, got {metrics[1]}"
@@ -295,10 +311,10 @@ class TestPostUpgradeStateIntact:
         msgs = read_messages(db_connection, QUEUE_NAME, vt=0, qty=100)
 
         # Find the message that was sent pre-upgrade to survive the upgrade
+        # msg_id=0, read_ct=1, enqueued_at=2, last_read_at=3, vt=4, message=5, headers=6
         survive_msg = None
         for m in msgs:
-            body = m[5]  # message column
-            if body.get("purpose") == "survive_upgrade":
+            if m[5].get("purpose") == "survive_upgrade":
                 survive_msg = m
                 break
 
@@ -404,7 +420,7 @@ class TestPostUpgradeOperations:
         )
         result = set_vt(db_connection, QUEUE_NAME, msg_id, 60)
         assert result is not None
-        assert result[0] == msg_id
+        assert result[0] == msg_id  # msg_id is column 0
         # Clean up
         delete_message(db_connection, QUEUE_NAME, msg_id)
 
@@ -455,7 +471,7 @@ class TestPostUpgradeOperations:
             )
             msgs = read_messages(db_connection, POST_QUEUE_NAME, vt=0, qty=1)
             assert len(msgs) == 1
-            assert msgs[0][5]["purpose"] == "new_queue_test"
+            assert msgs[0][5]["purpose"] == "new_queue_test"  # message is column 5
         finally:
             with db_connection.cursor() as cur:
                 cur.execute(
