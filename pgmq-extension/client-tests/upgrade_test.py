@@ -71,12 +71,12 @@ def send_message(conn, queue_name, msg, headers=None):
     with conn.cursor() as cur:
         if headers is not None:
             cur.execute(
-                "SELECT * FROM pgmq.send(%s, %s::jsonb, %s::jsonb)",
+                "SELECT * FROM pgmq.send(queue_name => %s::text, msg => %s::jsonb, headers => %s::jsonb)",
                 (queue_name, json.dumps(msg), json.dumps(headers)),
             )
         else:
             cur.execute(
-                "SELECT * FROM pgmq.send(%s, %s::jsonb)",
+                "SELECT * FROM pgmq.send(queue_name => %s::text, msg => %s::jsonb)",
                 (queue_name, json.dumps(msg)),
             )
         return cur.fetchone()[0]
@@ -85,7 +85,7 @@ def send_message(conn, queue_name, msg, headers=None):
 def read_messages(conn, queue_name, vt=0, qty=10):
     with conn.cursor() as cur:
         cur.execute(
-            "SELECT * FROM pgmq.read(%s, %s, %s)",
+            "SELECT * FROM pgmq.read(queue_name => %s::text, vt => %s::integer, qty => %s::integer)",
             (queue_name, vt, qty),
         )
         return cur.fetchall()
@@ -93,14 +93,15 @@ def read_messages(conn, queue_name, vt=0, qty=10):
 
 def pop_message(conn, queue_name):
     with conn.cursor() as cur:
-        cur.execute("SELECT * FROM pgmq.pop(%s)", (queue_name,))
+        cur.execute("SELECT * FROM pgmq.pop(queue_name => %s::text)", (queue_name,))
         return cur.fetchone()
 
 
 def archive_message(conn, queue_name, msg_id):
     with conn.cursor() as cur:
         cur.execute(
-            "SELECT pgmq.archive(%s, %s::bigint)", (queue_name, msg_id)
+            "SELECT pgmq.archive(queue_name => %s::text, msg_id => %s::bigint)",
+            (queue_name, msg_id),
         )
         return cur.fetchone()[0]
 
@@ -108,7 +109,8 @@ def archive_message(conn, queue_name, msg_id):
 def delete_message(conn, queue_name, msg_id):
     with conn.cursor() as cur:
         cur.execute(
-            "SELECT pgmq.delete(%s, %s::bigint)", (queue_name, msg_id)
+            "SELECT pgmq.delete(queue_name => %s::text, msg_id => %s::bigint)",
+            (queue_name, msg_id),
         )
         return cur.fetchone()[0]
 
@@ -116,7 +118,7 @@ def delete_message(conn, queue_name, msg_id):
 def set_vt(conn, queue_name, msg_id, vt):
     with conn.cursor() as cur:
         cur.execute(
-            "SELECT * FROM pgmq.set_vt(%s, %s::bigint, %s)",
+            "SELECT * FROM pgmq.set_vt(queue_name => %s::text, msg_id => %s::bigint, vt => %s::integer)",
             (queue_name, msg_id, vt),
         )
         return cur.fetchone()
@@ -124,7 +126,7 @@ def set_vt(conn, queue_name, msg_id, vt):
 
 def get_metrics(conn, queue_name):
     with conn.cursor() as cur:
-        cur.execute("SELECT * FROM pgmq.metrics(%s)", (queue_name,))
+        cur.execute("SELECT * FROM pgmq.metrics(queue_name => %s::text)", (queue_name,))
         return cur.fetchone()
 
 
@@ -144,7 +146,7 @@ def get_archive_count(conn, queue_name):
 
 def purge_queue(conn, queue_name):
     with conn.cursor() as cur:
-        cur.execute("SELECT pgmq.purge_queue(%s)", (queue_name,))
+        cur.execute("SELECT pgmq.purge_queue(queue_name => %s::text)", (queue_name,))
         return cur.fetchone()[0]
 
 
@@ -173,8 +175,8 @@ class TestPreUpgrade:
     def test_create_queues(self, db_connection):
         """Create the queues that will be tested post-upgrade."""
         with db_connection.cursor() as cur:
-            cur.execute("SELECT pgmq.create(%s)", (QUEUE_NAME,))
-            cur.execute("SELECT pgmq.create_unlogged(%s)", (QUEUE_UNLOGGED,))
+            cur.execute("SELECT pgmq.create(queue_name => %s::text)", (QUEUE_NAME,))
+            cur.execute("SELECT pgmq.create_unlogged(queue_name => %s::text)", (QUEUE_UNLOGGED,))
 
         queues = list_queues(db_connection)
         assert QUEUE_NAME in queues
@@ -224,7 +226,7 @@ class TestPreUpgrade:
         ]
         with db_connection.cursor() as cur:
             cur.execute(
-                "SELECT * FROM pgmq.send_batch(%s, %s::jsonb[])",
+                "SELECT * FROM pgmq.send_batch(queue_name => %s::text, msgs => %s::jsonb[])",
                 (QUEUE_NAME, msgs),
             )
             ids = [row[0] for row in cur.fetchall()]
@@ -415,7 +417,7 @@ class TestPostUpgradeOperations:
         ]
         with db_connection.cursor() as cur:
             cur.execute(
-                "SELECT * FROM pgmq.send_batch(%s, %s::jsonb[])",
+                "SELECT * FROM pgmq.send_batch(queue_name => %s::text, msgs => %s::jsonb[])",
                 (QUEUE_NAME, msgs),
             )
             ids = [row[0] for row in cur.fetchall()]
@@ -441,7 +443,7 @@ class TestPostUpgradeOperations:
         """Can create a brand-new queue after upgrade."""
         try:
             with db_connection.cursor() as cur:
-                cur.execute("SELECT pgmq.create(%s)", (POST_QUEUE_NAME,))
+                cur.execute("SELECT pgmq.create(queue_name => %s::text)", (POST_QUEUE_NAME,))
 
             queues = list_queues(db_connection)
             assert POST_QUEUE_NAME in queues
@@ -457,18 +459,18 @@ class TestPostUpgradeOperations:
         finally:
             with db_connection.cursor() as cur:
                 cur.execute(
-                    "SELECT pgmq.drop_queue(%s)", (POST_QUEUE_NAME,)
+                    "SELECT pgmq.drop_queue(queue_name => %s::text)", (POST_QUEUE_NAME,)
                 )
 
     @post_only
     def test_drop_pre_upgrade_queue(self, db_connection):
         """Can drop queues that were created pre-upgrade. Run last."""
         with db_connection.cursor() as cur:
-            cur.execute("SELECT pgmq.drop_queue(%s)", (QUEUE_NAME,))
+            cur.execute("SELECT pgmq.drop_queue(queue_name => %s::text)", (QUEUE_NAME,))
             result = cur.fetchone()[0]
             assert result is True
 
-            cur.execute("SELECT pgmq.drop_queue(%s)", (QUEUE_UNLOGGED,))
+            cur.execute("SELECT pgmq.drop_queue(queue_name => %s::text)", (QUEUE_UNLOGGED,))
             result = cur.fetchone()[0]
             assert result is True
 
