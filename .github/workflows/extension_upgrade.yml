@@ -14,7 +14,7 @@ on:
   push:
     branches:
       - main
-       - upgrade-test
+      - upgrade-test
     paths:
       - "pgmq-extension/**"
       - ".github/workflows/extension_upgrade.yml"
