@@ -79,7 +79,7 @@ jobs:
 
       - name: Run SQL tests
         working-directory: ./pgmq-extension
-        run: make installcheck
+        run: pg-build-test
 
       - name: Run pre-upgrade tests
         working-directory: /tmp/upgrade-client-tests
@@ -104,7 +104,7 @@ jobs:
 
       - name: Run SQL tests
         working-directory: ./pgmq-extension
-        run: make installcheck
+        run: pg-build-test
 
       - name: Show regression diffs
         if: failure()
