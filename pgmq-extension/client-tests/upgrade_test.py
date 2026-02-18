@@ -94,11 +94,11 @@ def read_messages(conn, queue_name, vt=0, qty=10):
 
 
 def read_messages_pre(conn, queue_name, vt=0, qty=10):
-    """Read messages using the pre-upgrade schema (no last_read_at column)."""
+    """Read messages using the pre-upgrade schema (no last_read_at or headers columns)."""
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT msg_id, read_ct, enqueued_at, vt, message, headers
+            SELECT msg_id, read_ct, enqueued_at, vt, message
             FROM pgmq.read(queue_name => %s::text, vt => %s::integer, qty => %s::integer)
             """,
             (queue_name, vt, qty),
@@ -290,7 +290,7 @@ class TestPreUpgrade:
         )
 
         # Partitioned queue has its seeded message
-        # msg_id=0, read_ct=1, enqueued_at=2, vt=3, message=4, headers=5
+        # msg_id=0, read_ct=1, enqueued_at=2, vt=3, message=4
         partitioned_msgs = read_messages_pre(
             db_connection, QUEUE_PARTITIONED, vt=0, qty=10
         )
