@@ -78,6 +78,7 @@ jobs:
           psql -c "CREATE EXTENSION pgmq;"
 
       - name: Run SQL tests
+        working-directory: ./pgmq-extension
         run: make installcheck
 
       - name: Run pre-upgrade tests
