@@ -532,17 +532,9 @@ class TestPostUpgradeOperations:
             result = cur.fetchone()[0]
             assert result is True
 
-            cur.execute(
-                "SELECT pgmq.drop_queue(queue_name => %s::text, partitioned => %s::boolean)",
-                (QUEUE_PARTITIONED, True),
-            )
-            result = cur.fetchone()[0]
-            assert result is True
-
         queues = list_queues(db_connection)
         assert QUEUE_NAME not in queues
         assert QUEUE_UNLOGGED not in queues
-        assert QUEUE_PARTITIONED not in queues
 
 
 class TestPostUpgradePartitionedQueue:
@@ -602,3 +594,17 @@ class TestPostUpgradePartitionedQueue:
         """pgmq.metrics() works on a pre-upgrade partitioned queue."""
         metrics = get_metrics(db_connection, QUEUE_PARTITIONED)
         assert metrics[0] == QUEUE_PARTITIONED
+
+    @post_only
+    def test_drop_partitioned_queue(self, db_connection):
+        """Can drop the partitioned queue created pre-upgrade. Run last."""
+        with db_connection.cursor() as cur:
+            cur.execute(
+                "SELECT pgmq.drop_queue(queue_name => %s::text, partitioned => %s::boolean)",
+                (QUEUE_PARTITIONED, True),
+            )
+            result = cur.fetchone()[0]
+            assert result is True
+
+        queues = list_queues(db_connection)
+        assert QUEUE_PARTITIONED not in queues
