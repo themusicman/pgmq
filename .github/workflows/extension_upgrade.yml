@@ -30,9 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pg: [
-          # 13, 14, 15, 16, 17,
-          18]
+        pg: [13, 14, 15, 16, 17, 18]
         partman:
           - 5.1.0
         exclude:
