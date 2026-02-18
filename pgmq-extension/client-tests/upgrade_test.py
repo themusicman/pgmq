@@ -43,9 +43,7 @@ post_only = pytest.mark.skipif(not is_post, reason="post-upgrade only")
 
 def require_phase():
     if PHASE not in ("pre", "post"):
-        pytest.fail(
-            "Set UPGRADE_PHASE=pre or UPGRADE_PHASE=post to run upgrade tests"
-        )
+        pytest.fail("Set UPGRADE_PHASE=pre or UPGRADE_PHASE=post to run upgrade tests")
 
 
 # ---------------------------------------------------------------------------
@@ -88,6 +86,19 @@ def read_messages(conn, queue_name, vt=0, qty=10):
         cur.execute(
             """
             SELECT msg_id, read_ct, enqueued_at, last_read_at, vt, message, headers
+            FROM pgmq.read(queue_name => %s::text, vt => %s::integer, qty => %s::integer)
+            """,
+            (queue_name, vt, qty),
+        )
+        return cur.fetchall()
+
+
+def read_messages_pre(conn, queue_name, vt=0, qty=10):
+    """Read messages using the pre-upgrade schema (no last_read_at column)."""
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT msg_id, read_ct, enqueued_at, vt, message, headers
             FROM pgmq.read(queue_name => %s::text, vt => %s::integer, qty => %s::integer)
             """,
             (queue_name, vt, qty),
@@ -172,9 +183,7 @@ def purge_queue(conn, queue_name):
 
 def get_pgmq_version(conn):
     with conn.cursor() as cur:
-        cur.execute(
-            "SELECT extversion FROM pg_extension WHERE extname = 'pgmq'"
-        )
+        cur.execute("SELECT extversion FROM pg_extension WHERE extname = 'pgmq'")
         row = cur.fetchone()
         return row[0] if row else None
 
@@ -196,7 +205,9 @@ class TestPreUpgrade:
         """Create the queues that will be tested post-upgrade."""
         with db_connection.cursor() as cur:
             cur.execute("SELECT pgmq.create(queue_name => %s::text)", (QUEUE_NAME,))
-            cur.execute("SELECT pgmq.create_unlogged(queue_name => %s::text)", (QUEUE_UNLOGGED,))
+            cur.execute(
+                "SELECT pgmq.create_unlogged(queue_name => %s::text)", (QUEUE_UNLOGGED,)
+            )
             cur.execute(
                 "SELECT pgmq.create_partitioned(queue_name => %s::text, partition_interval => %s::text, retention_interval => %s::text)",
                 (QUEUE_PARTITIONED, "10 seconds", "60 seconds"),
@@ -253,10 +264,7 @@ class TestPreUpgrade:
     @pre_only
     def test_send_batch(self, db_connection):
         """Send a batch of messages that should be readable after upgrade."""
-        msgs = [
-            json.dumps({"phase": "pre", "batch": True, "i": i})
-            for i in range(5)
-        ]
+        msgs = [json.dumps({"phase": "pre", "batch": True, "i": i}) for i in range(5)]
         with db_connection.cursor() as cur:
             cur.execute(
                 "SELECT * FROM pgmq.send_batch(queue_name => %s::text, msgs => %s::jsonb[])",
@@ -276,17 +284,20 @@ class TestPreUpgrade:
         assert get_archive_count(db_connection, QUEUE_NAME) == 1
 
         # Unlogged queue has its seeded message
-        unlogged_msgs = read_messages(db_connection, QUEUE_UNLOGGED, vt=0, qty=10)
+        unlogged_msgs = read_messages_pre(db_connection, QUEUE_UNLOGGED, vt=0, qty=10)
         assert len(unlogged_msgs) == 1, (
             f"Expected 1 message in unlogged queue, got {len(unlogged_msgs)}"
         )
 
         # Partitioned queue has its seeded message
-        partitioned_msgs = read_messages(db_connection, QUEUE_PARTITIONED, vt=0, qty=10)
+        # msg_id=0, read_ct=1, enqueued_at=2, vt=3, message=4, headers=5
+        partitioned_msgs = read_messages_pre(
+            db_connection, QUEUE_PARTITIONED, vt=0, qty=10
+        )
         assert len(partitioned_msgs) == 1, (
             f"Expected 1 message in partitioned queue, got {len(partitioned_msgs)}"
         )
-        assert partitioned_msgs[0][5].get("purpose") == "partitioned_survive", (
+        assert partitioned_msgs[0][4].get("purpose") == "partitioned_survive", (
             "Partitioned queue message has unexpected content"
         )
         partitioned_metrics = get_metrics(db_connection, QUEUE_PARTITIONED)
@@ -327,9 +338,7 @@ class TestPostUpgradeStateIntact:
         """Queues created pre-upgrade must still be listed."""
         queues = list_queues(db_connection)
         assert QUEUE_NAME in queues, f"{QUEUE_NAME} missing after upgrade"
-        assert QUEUE_UNLOGGED in queues, (
-            f"{QUEUE_UNLOGGED} missing after upgrade"
-        )
+        assert QUEUE_UNLOGGED in queues, f"{QUEUE_UNLOGGED} missing after upgrade"
 
     @post_only
     def test_messages_survive(self, db_connection):
@@ -360,9 +369,7 @@ class TestPostUpgradeStateIntact:
     def test_archive_survives(self, db_connection):
         """Archived messages are still in the archive table."""
         count = get_archive_count(db_connection, QUEUE_NAME)
-        assert count == 1, (
-            f"Expected 1 archived message after upgrade, got {count}"
-        )
+        assert count == 1, f"Expected 1 archived message after upgrade, got {count}"
 
     @post_only
     def test_metrics_work(self, db_connection):
@@ -461,10 +468,7 @@ class TestPostUpgradeOperations:
     @post_only
     def test_send_batch(self, db_connection):
         """Can send a batch of messages to a pre-upgrade queue."""
-        msgs = [
-            json.dumps({"phase": "post", "batch": True, "i": i})
-            for i in range(3)
-        ]
+        msgs = [json.dumps({"phase": "post", "batch": True, "i": i}) for i in range(3)]
         with db_connection.cursor() as cur:
             cur.execute(
                 "SELECT * FROM pgmq.send_batch(queue_name => %s::text, msgs => %s::jsonb[])",
@@ -493,7 +497,9 @@ class TestPostUpgradeOperations:
         """Can create a brand-new queue after upgrade."""
         try:
             with db_connection.cursor() as cur:
-                cur.execute("SELECT pgmq.create(queue_name => %s::text)", (POST_QUEUE_NAME,))
+                cur.execute(
+                    "SELECT pgmq.create(queue_name => %s::text)", (POST_QUEUE_NAME,)
+                )
 
             queues = list_queues(db_connection)
             assert POST_QUEUE_NAME in queues
@@ -520,7 +526,9 @@ class TestPostUpgradeOperations:
             result = cur.fetchone()[0]
             assert result is True
 
-            cur.execute("SELECT pgmq.drop_queue(queue_name => %s::text)", (QUEUE_UNLOGGED,))
+            cur.execute(
+                "SELECT pgmq.drop_queue(queue_name => %s::text)", (QUEUE_UNLOGGED,)
+            )
             result = cur.fetchone()[0]
             assert result is True
 
