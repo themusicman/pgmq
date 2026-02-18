@@ -24,7 +24,7 @@ on:
 
 jobs:
   test:
-    name: Upgrade Test (pg ${{ matrix.pg }})
+    name: Upgrade Test (pg ${{ matrix.pg }}) - partman ${{ matrix.partman }}
     runs-on: ubuntu-latest
     container: pgxn/pgxn-tools
     strategy:
@@ -65,7 +65,7 @@ jobs:
         run: git checkout tags/v1.3.2
 
       - name: Install pg_partman
-        run:
+        run: |
           pgxn install "pg_partman=${{ matrix.partman }}"
           psql -c "CREATE EXTENSION pg_partman;"
 
