@@ -31,6 +31,7 @@ import pytest
 PHASE = os.getenv("UPGRADE_PHASE", "").lower()
 QUEUE_NAME = "upgrade_test_main"
 QUEUE_UNLOGGED = "upgrade_test_unlogged"
+QUEUE_PARTITIONED = "upgrade_test_partitioned"
 POST_QUEUE_NAME = "upgrade_test_post"
 
 is_pre = PHASE == "pre"
@@ -196,10 +197,15 @@ class TestPreUpgrade:
         with db_connection.cursor() as cur:
             cur.execute("SELECT pgmq.create(queue_name => %s::text)", (QUEUE_NAME,))
             cur.execute("SELECT pgmq.create_unlogged(queue_name => %s::text)", (QUEUE_UNLOGGED,))
+            cur.execute(
+                "SELECT pgmq.create_partitioned(queue_name => %s::text, partition_interval => %s::text, retention_interval => %s::text)",
+                (QUEUE_PARTITIONED, "10 seconds", "60 seconds"),
+            )
 
         queues = list_queues(db_connection)
         assert QUEUE_NAME in queues
         assert QUEUE_UNLOGGED in queues
+        assert QUEUE_PARTITIONED in queues
 
     @pre_only
     def test_send_messages(self, db_connection):
@@ -235,6 +241,14 @@ class TestPreUpgrade:
             {"phase": "pre", "index": 4, "purpose": "unlogged_survive"},
         )
         assert msg_id_4 is not None
+
+        # Message on the partitioned queue
+        msg_id_5 = send_message(
+            db_connection,
+            QUEUE_PARTITIONED,
+            {"phase": "pre", "index": 5, "purpose": "partitioned_survive"},
+        )
+        assert msg_id_5 is not None
 
     @pre_only
     def test_send_batch(self, db_connection):
@@ -490,6 +504,73 @@ class TestPostUpgradeOperations:
             result = cur.fetchone()[0]
             assert result is True
 
+            cur.execute(
+                "SELECT pgmq.drop_queue(queue_name => %s::text, partitioned => %s::boolean)",
+                (QUEUE_PARTITIONED, True),
+            )
+            result = cur.fetchone()[0]
+            assert result is True
+
         queues = list_queues(db_connection)
         assert QUEUE_NAME not in queues
         assert QUEUE_UNLOGGED not in queues
+        assert QUEUE_PARTITIONED not in queues
+
+
+class TestPostUpgradePartitionedQueue:
+    """Verify partitioned queues created pre-upgrade survive and work after upgrade."""
+
+    @post_only
+    def test_partitioned_queue_exists(self, db_connection):
+        """Partitioned queue created pre-upgrade is still listed."""
+        queues = list_queues(db_connection)
+        assert QUEUE_PARTITIONED in queues, f"{QUEUE_PARTITIONED} missing after upgrade"
+
+    @post_only
+    def test_partitioned_messages_survive(self, db_connection):
+        """Messages sent to partitioned queue pre-upgrade are still readable."""
+        msgs = read_messages(db_connection, QUEUE_PARTITIONED, vt=0, qty=10)
+        assert len(msgs) >= 1
+        survive_msg = next(
+            (m for m in msgs if m[5].get("purpose") == "partitioned_survive"), None
+        )
+        assert survive_msg is not None, "Pre-upgrade partitioned message not found"
+        assert survive_msg[5]["phase"] == "pre"
+
+    @post_only
+    def test_partitioned_send_and_read(self, db_connection):
+        """Can send and read messages on a pre-upgrade partitioned queue."""
+        msg_id = send_message(
+            db_connection,
+            QUEUE_PARTITIONED,
+            {"phase": "post", "purpose": "partitioned_new"},
+        )
+        assert msg_id is not None
+        msgs = read_messages(db_connection, QUEUE_PARTITIONED, vt=0, qty=10)
+        assert any(m[5].get("purpose") == "partitioned_new" for m in msgs)
+
+    @post_only
+    def test_partitioned_delete(self, db_connection):
+        """Can delete messages from a pre-upgrade partitioned queue."""
+        msg_id = send_message(
+            db_connection,
+            QUEUE_PARTITIONED,
+            {"phase": "post", "purpose": "partitioned_delete"},
+        )
+        assert delete_message(db_connection, QUEUE_PARTITIONED, msg_id)
+
+    @post_only
+    def test_partitioned_archive(self, db_connection):
+        """Can archive messages from a pre-upgrade partitioned queue."""
+        msg_id = send_message(
+            db_connection,
+            QUEUE_PARTITIONED,
+            {"phase": "post", "purpose": "partitioned_archive"},
+        )
+        assert archive_message(db_connection, QUEUE_PARTITIONED, msg_id)
+
+    @post_only
+    def test_partitioned_metrics(self, db_connection):
+        """pgmq.metrics() works on a pre-upgrade partitioned queue."""
+        metrics = get_metrics(db_connection, QUEUE_PARTITIONED)
+        assert metrics[0] == QUEUE_PARTITIONED

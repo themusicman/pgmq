@@ -61,6 +61,16 @@ jobs:
       - name: Checkout old version (v1.3.2)
         run: git checkout tags/v1.3.2
 
+      - name: Install pg_partman
+        run: |
+          git clone https://github.com/pgpartman/pg_partman.git && \
+          cd pg_partman && \
+          git checkout v4.7.4 && \
+          sed -i "s|PG_CONFIG = pg_config|PG_CONFIG = ${PG_CONFIG}|" Makefile && \
+          make && \
+          make install
+          psql -c "CREATE EXTENSION pg_partman;"
+
       - name: Install pgmq v1.3.2
       # extension was installed on root during v1.3.2
         working-directory: .
@@ -69,6 +79,9 @@ jobs:
           make
           make install
           psql -c "CREATE EXTENSION pgmq;"
+
+      - name: Run SQL tests
+        run: make installcheck
 
       - name: Run pre-upgrade tests
         working-directory: /tmp/upgrade-client-tests
@@ -90,3 +103,6 @@ jobs:
       - name: Run post-upgrade tests
         working-directory: ./pgmq-extension/client-tests
         run: UPGRADE_PHASE=post uv run pytest upgrade_test.py -v
+
+      - name: Run SQL tests
+        run: make installcheck
