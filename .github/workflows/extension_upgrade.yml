@@ -61,8 +61,8 @@ jobs:
       - name: Stash test files from CI branch
         run: cp -r pgmq-extension/client-tests /tmp/upgrade-client-tests
 
-      - name: Checkout old version (v1.3.2)
-        run: git checkout tags/v1.3.2
+      - name: Checkout old version (v1.4.0)
+        run: git checkout tags/v1.4.0
 
       - name: Install pg_partman
         run: |
@@ -70,8 +70,7 @@ jobs:
           psql -c "CREATE EXTENSION pg_partman;"
 
       - name: Install pgmq v1.3.2
-      # extension was installed on root during v1.3.2
-        working-directory: .
+        working-directory: ./pgmq-extension
         run: |
           make clean || true
           make
