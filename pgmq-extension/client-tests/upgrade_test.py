@@ -275,6 +275,26 @@ class TestPreUpgrade:
         # 1 archived message
         assert get_archive_count(db_connection, QUEUE_NAME) == 1
 
+        # Unlogged queue has its seeded message
+        unlogged_msgs = read_messages(db_connection, QUEUE_UNLOGGED, vt=0, qty=10)
+        assert len(unlogged_msgs) == 1, (
+            f"Expected 1 message in unlogged queue, got {len(unlogged_msgs)}"
+        )
+
+        # Partitioned queue has its seeded message
+        partitioned_msgs = read_messages(db_connection, QUEUE_PARTITIONED, vt=0, qty=10)
+        assert len(partitioned_msgs) == 1, (
+            f"Expected 1 message in partitioned queue, got {len(partitioned_msgs)}"
+        )
+        assert partitioned_msgs[0][5].get("purpose") == "partitioned_survive", (
+            "Partitioned queue message has unexpected content"
+        )
+        partitioned_metrics = get_metrics(db_connection, QUEUE_PARTITIONED)
+        assert partitioned_metrics[0] == QUEUE_PARTITIONED
+        assert partitioned_metrics[1] == 1, (
+            f"Expected 1 message in partitioned metrics, got {partitioned_metrics[1]}"
+        )
+
     @pre_only
     def test_record_version(self, db_connection):
         """Log the pre-upgrade version for debugging."""
