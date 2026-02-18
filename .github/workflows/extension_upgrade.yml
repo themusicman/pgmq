@@ -103,4 +103,10 @@ jobs:
         run: UPGRADE_PHASE=post uv run pytest upgrade_test.py -v
 
       - name: Run SQL tests
+        working-directory: ./pgmq-extension
         run: make installcheck
+
+      - name: Show regression diffs
+        if: failure()
+        working-directory: ./pgmq-extension
+        run: cat regression.diffs
