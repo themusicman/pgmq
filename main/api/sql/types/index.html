@@ -19,7 +19,7 @@
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
     
     
       
@@ -714,9 +714,9 @@
 </tbody>
 </table>
 <p>Example:</p>
-<div class="codehilite"><pre><span></span><code> msg_id | read_ct |          enqueued_at          |              vt              | message | headers 
---------+---------+-------------------------------+------------------------------+---------+---------
-      1 |       1 | 2026-01-23 19:59:43.333107-06 | 2026-01-23 20:00:13.60826-06 | {&quot;hello&quot;: &quot;world&quot;}      | 
+<div class="codehilite"><pre><span></span><code> msg_id | read_ct |          enqueued_at          |          last_read_at         |              vt              |      message       |   headers    
+--------+---------+-------------------------------+-------------------------------+------------------------------+--------------------+--------------
+      1 |       1 | 2026-01-23 19:59:43.333107-06 | 2026-01-23 20:00:02.587469-06 | 2026-01-23 20:00:13.60826-06 | {&quot;hello&quot;: &quot;world&quot;} | {&quot;foo&quot;: 123} 
 </code></pre></div>
 
 <h2 id="queue_record">queue_record<a class="headerlink" href="#queue_record" title="Permanent link">&para;</a></h2>
