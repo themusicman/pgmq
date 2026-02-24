@@ -92,6 +92,7 @@ Community
 
 - [.NET](https://github.com/brianpursley/Npgmq)
 - [Dart](https://github.com/Ofceab-Studio/dart_pgmq)
+- [Elixir] (https://github.com/agoodway/pgflow)
 - [Elixir + Broadway](https://github.com/v0idpwn/off_broadway_pgmq)
 - [Elixir](https://github.com/v0idpwn/pgmq-elixir)
 - [Go](https://github.com/craigpastro/pgmq-go)
